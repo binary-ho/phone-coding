@@ -61,9 +61,9 @@ In this phase, the core logic modules of the Action will be implemented in TypeS
 
 ### 2.3. Implement Gemini API Client (`src/gemini.ts`)
 - [x] Implement the `callGeminiApi` function.
-    - Initialize the Gemini client using the `@google/genai` SDK. The API key should be passed as an argument to the function.
-    - Call the `generativeModel.generateContent()` method to send the assembled prompt to the API.
-    - Extract the text result (`response.text()`) from the API response and return it.
+    - Initialize the Gemini client from the `@google/genai` SDK, passing the API key to the constructor.
+    - Call the `genAI.models.generateContent()` method to send the assembled prompt to the API.
+    - Extract the text result from the API response using the `.text` accessor and return it.
     - Wrap the API call in a `try-catch` block to handle potential failures and log errors.
 
 ### 2.4. Implement Feedback Integrator (`src/comment.ts`)
