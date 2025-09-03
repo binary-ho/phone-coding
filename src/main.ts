@@ -8,7 +8,7 @@ import { postOrUpdateComment } from './comment';
 async function run(): Promise<void> {
   try {
     const geminiApiKey = core.getInput('gemini-api-key', { required: true });
-    const githubToken = core.getInput('github-token', { required: true });
+    const githubToken = core.getInput('remote-repository-access-token', { required: true });
     const mode = core.getInput('mode') || 'review';
 
     if (mode !== 'review' && mode !== 'summarize') {
