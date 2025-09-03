@@ -5,7 +5,7 @@ export const callGeminiApi = async (apiKey: string, prompt: string): Promise<str
     const genAI = new GoogleGenAI({ apiKey });
 
     const result = await genAI.models.generateContent({
-        model: 'gemini-pro',
+        model: 'gemini-1.5-flash',
         contents: prompt,
     });
 
