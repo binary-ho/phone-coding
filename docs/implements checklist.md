@@ -44,10 +44,13 @@ In this phase, the core logic modules of the Action will be implemented in TypeS
 ### 2.1. Implement Context Provider (`src/context.ts`)
 - [x] Implement the `getPrContext` function.
     - Use the `context` object from `@actions/github` to extract and return the PR number, title, body, and base and head SHAs.
+    - Guard against non-PR contexts (no `context.payload.pull_request`) and throw a clear error.
+    - Include `{ owner, repo }` from `context.repo` in the returned context.
 - [x] Implement the `getPrDiff` function.
-    - Use `@actions/exec` to run the `git diff --no-color ${{ baseSha }}..${{ headSha }}` command.[3]
+    - Use `@actions/exec` to run the `git diff --no-color ${baseSha}..${headSha}` command.[3]
     - Add a comment specifying that an accurate diff can only be obtained in an environment where `fetch-depth: 0` is set.[4, 5]
     - Return the execution result as a string.
+    - Consider truncating very large diffs (e.g., > 200KB) and indicating truncation in the prompt.
 
 ### 2.2. Implement Prompt Assembler (`src/prompt.ts`)
 - [x] Implement the `buildPrompt` function.
