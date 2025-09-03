@@ -68,11 +68,13 @@ In this phase, the core logic modules of the Action will be implemented in TypeS
 
 ### 2.4. Implement Feedback Integrator (`src/comment.ts`)
 - [x] Implement the `findPreviousComment` function.
-    - Use the Octokit client from `@actions/github` to call `issues.listComments`.
-    - Search for an existing comment by a unique identifier in its body (e.g., ``) and return its ID. Refer to the logic of `peter-evans/find-comment`.[6]
+    - Use a constant for a unique identifier, e.g., `const COMMENT_TAG = '<!-- COMMENT_TAG: pr-reviewer -->'`, and document that this exact token must be used.
+    - Use the Octokit client to call `issues.listComments` with pagination, iterating through all pages.
+    - Filter comments to find one created by the action's user (the bot) that also contains the `COMMENT_TAG` in its body to avoid false matches.
 - [x] Implement the `postOrUpdateComment` function.
-    - Call `findPreviousComment` to check for an existing comment ID.
-    - If an ID exists, call `issues.updateComment`; otherwise, call `issues.createComment` to post the review result to the PR. Refer to the logic of `peter-evans/create-or-update-comment`.[6]
+    - Call `findPreviousComment` to check for an existing comment.
+    - If a comment ID is found, call `issues.updateComment`. Otherwise, call `issues.createComment`.
+    - The generated comment body must always append the `COMMENT_TAG` at the very bottom to ensure idempotent updates.
 
 ### 2.5. Phase 2 Final Verification
 - [x] Verify that the functions in each module return the correct output types for the expected inputs (type-level verification before unit testing).

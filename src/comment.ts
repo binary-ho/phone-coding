@@ -7,11 +7,18 @@ export const findPreviousComment = async (
   repo: { owner: string; repo: string },
   issue_number: number
 ) => {
-  const { data: comments } = await octokit.rest.issues.listComments({
+  const { data: currentUser } = await octokit.rest.users.getAuthenticated();
+  const botUsername = currentUser.login;
+
+  const comments = await octokit.paginate(octokit.rest.issues.listComments, {
     ...repo,
     issue_number,
   });
-  return comments.find(comment => comment.body?.includes(COMMENT_TAG));
+
+  return comments.find(
+    comment =>
+      comment.user?.login === botUsername && comment.body?.includes(COMMENT_TAG)
+  );
 };
 
 export const postOrUpdateComment = async (
