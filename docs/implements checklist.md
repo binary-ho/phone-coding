@@ -44,7 +44,7 @@ In this phase, the core logic modules of the Action will be implemented in TypeS
 ### 2.1. Implement Context Provider (`src/context.ts`)
 - [x] Implement the `getPrContext` function.
     - Use the `context` object from `@actions/github` to extract and return the PR number, title, body, and base and head SHAs.
-    - Guard against non-PR contexts (no `context.payload.pull_request`) and throw a clear error.
+    - Guard against non-PR contexts (no `context.payload.pull_request`) and return `undefined` to allow for graceful exit.
     - Include `{ owner, repo }` from `context.repo` in the returned context.
 - [x] Implement the `getPrDiff` function.
     - Use `@actions/exec` to run the `git diff --no-color ${baseSha}..${headSha}` command.[3]

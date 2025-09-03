@@ -7,8 +7,9 @@ export const getPrContext = async (
   const { context } = github;
   const { payload, repo, issue } = context;
 
+  // If the event is not a pull request, return undefined to allow for graceful exit.
   if (!payload.pull_request) {
-    throw new Error('This action only works on pull requests');
+    return undefined;
   }
 
   const { number } = payload.pull_request;
