@@ -88,20 +88,20 @@ In this phase, the core logic modules of the Action will be implemented in TypeS
 In this phase, the implemented modules will be integrated to control the overall execution flow of the Action, and a workflow will be written to test the Action in a real PR.
 
 ### 3.1. Implement Main Orchestrator (`src/main.ts`)
-- [ ] Define and execute an async `run` function.
-- [ ] Use `@actions/core` to get the `gemini-api-key`, `github-token`, and `mode` inputs.
-- [ ] **Control the execution flow:**
+- [x] Define and execute an async `run` function.
+- [x] Use `@actions/core` to get the `gemini-api-key`, `github-token`, and `mode` inputs.
+- [x] **Control the execution flow:**
     1. Call functions from `context.ts` to get the PR context and diff.
     2. Call the function from `prompt.ts` to generate the appropriate prompt based on the context and `mode`.
     3. Call the function from `gemini.ts` to execute the Gemini API with the generated prompt and receive the result.
     4. Call the function from `comment.ts` to post or update a comment on the PR with Gemini's response.
-- [ ] Handle any errors that occur during the process using `core.setFailed()`.
+- [x] Handle any errors that occur during the process using `core.setFailed()`.
 
 ### 3.2. Write Test Workflow (`.github/workflows/review-bot-test.yml`)
-- [ ] Create the workflow file.
-- [ ] Set it to be triggered by the `on: pull_request` event.
-- [ ] Specify the required permissions in the `permissions` block: `pull-requests: write` and `contents: read`.[7, 8]
-- [ ] **Define the Job:**
+- [x] Create the workflow file.
+- [x] Set it to be triggered by the `on: pull_request` event.
+- [x] Specify the required permissions in the `permissions` block: `pull-requests: write` and `contents: read`.[7, 8]
+- [x] **Define the Job:**
     1. Use `actions/checkout@v4` to check out the code. The `fetch-depth: 0` option must be included.[4, 5]
     2. Use the `uses:./` syntax to call the locally developed Action.
     3. Use the `with` block to pass the `gemini-api-key` and `github-token` to the Action.
@@ -109,9 +109,9 @@ In this phase, the implemented modules will be integrated to control the overall
         - `github-token: ${{ secrets.GITHUB_TOKEN }}`
 
 ### 3.3. Phase 3 Final Verification
-- [ ] Perform a code review of `main.ts` to ensure the `run` function calls the functions from each module in the correct order and with the correct arguments.
-- [ ] Validate the YAML syntax of the test workflow file.
-- [ ] Confirm that the workflow is ready to be triggered correctly on PR creation and updates.
+- [x] Perform a code review of `main.ts` to ensure the `run` function calls the functions from each module in the correct order and with the correct arguments.
+- [x] Validate the YAML syntax of the test workflow file.
+- [x] Confirm that the workflow is ready to be triggered correctly on PR creation and updates.
 
 ---
 
