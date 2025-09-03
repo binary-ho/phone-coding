@@ -8,7 +8,7 @@ import { postOrUpdateComment } from './comment';
 async function run(): Promise<void> {
   try {
     const geminiApiKey = core.getInput('gemini-api-key', { required: true });
-    const githubToken = core.getInput('remote-repository-access-token', { required: true });
+    const githubToken = core.getInput('github-token', { required: true });
     const mode = core.getInput('mode') || 'review';
 
     if (mode !== 'review' && mode !== 'summarize') {
@@ -17,7 +17,7 @@ async function run(): Promise<void> {
 
     const octokit = github.getOctokit(githubToken);
 
-    const prContext = await getPrContext();
+    const prContext = await getPrContext(octokit);
     if (!prContext) {
       core.info('This action is not running in a pull request context. Skipping.');
       return;

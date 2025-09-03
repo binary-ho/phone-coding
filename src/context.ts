@@ -1,12 +1,9 @@
 import * as github from '@actions/github';
 import * as exec from '@actions/exec';
 
-export const getPrContext = async () => {
-  const { GITHUB_TOKEN } = process.env;
-  if (!GITHUB_TOKEN) {
-    throw new Error('GITHUB_TOKEN is not set');
-  }
-  const octokit = github.getOctokit(GITHUB_TOKEN);
+export const getPrContext = async (
+  octokit: ReturnType<typeof github.getOctokit>
+) => {
   const { context } = github;
   const { payload, repo, issue } = context;
 

@@ -28,4 +28,4 @@ jobs:
         uses: ./
         with:
           gemini-api-key: ${{ secrets.GEMINI_API_KEY }}
-          remote-repository-access-token: ${{ secrets.REMOTE_REPOSITORY_ACCESS_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
