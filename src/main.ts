@@ -17,17 +17,17 @@ async function run(): Promise<void> {
 
     const octokit = github.getOctokit(githubToken);
 
-    const prContext = getPrContext();
+    const prContext = await getPrContext();
     if (!prContext) {
       core.info('This action is not running in a pull request context. Skipping.');
       return;
     }
 
-    const diff = await getPrDiff(octokit, prContext);
-    const prompt = buildPrompt(prContext.title, prContext.body, diff, mode);
+    const diff = await getPrDiff(prContext.pr.base_sha, prContext.pr.head_sha);
+    const prompt = buildPrompt(prContext.pr.title, prContext.pr.body, diff, mode);
     const geminiResponse = await callGeminiApi(geminiApiKey, prompt);
 
-    await postOrUpdateComment(octokit, prContext, geminiResponse);
+    await postOrUpdateComment(octokit, prContext.repo, prContext.pr.number, geminiResponse);
 
   } catch (error) {
     if (error instanceof Error) {
