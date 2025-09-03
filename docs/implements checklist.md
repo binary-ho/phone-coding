@@ -42,39 +42,44 @@ In this phase, the basic project structure and environment for developing a Type
 In this phase, the core logic modules of the Action will be implemented in TypeScript. Each module will be created as a separate file under the `src` directory to maintain high cohesion.
 
 ### 2.1. Implement Context Provider (`src/context.ts`)
-- [ ] Implement the `getPrContext` function.
+- [x] Implement the `getPrContext` function.
     - Use the `context` object from `@actions/github` to extract and return the PR number, title, body, and base and head SHAs.
-- [ ] Implement the `getPrDiff` function.
-    - Use `@actions/exec` to run the `git diff --no-color ${{ baseSha }}..${{ headSha }}` command.[3]
+    - Guard against non-PR contexts (no `context.payload.pull_request`) and throw a clear error.
+    - Include `{ owner, repo }` from `context.repo` in the returned context.
+- [x] Implement the `getPrDiff` function.
+    - Use `@actions/exec` to run the `git diff --no-color ${baseSha}..${headSha}` command.[3]
     - Add a comment specifying that an accurate diff can only be obtained in an environment where `fetch-depth: 0` is set.[4, 5]
     - Return the execution result as a string.
+    - Consider truncating very large diffs (e.g., > 200KB) and indicating truncation in the prompt.
 
 ### 2.2. Implement Prompt Assembler (`src/prompt.ts`)
-- [ ] Implement the `buildPrompt` function.
+- [x] Implement the `buildPrompt` function.
     - Inputs: `prTitle`, `prBody`, `diff`, `mode` (`review` or `summarize`).
     - Branch based on the `mode` value to dynamically construct prompt templates for each persona ("PR Summarizer", "Code Reviewer").
     - Insert the PR title, body, and diff content into the prompt template with clear separators (e.g., `--- DIFF ---`).
     - Return the final, assembled prompt string.
 
 ### 2.3. Implement Gemini API Client (`src/gemini.ts`)
-- [ ] Implement the `callGeminiApi` function.
-    - Initialize the Gemini client using the `@google/genai` SDK. The API key should be passed as an argument to the function.
-    - Call the `generativeModel.generateContent()` method to send the assembled prompt to the API.
-    - Extract the text result (`response.text()`) from the API response and return it.
+- [x] Implement the `callGeminiApi` function.
+    - Initialize the Gemini client from the `@google/genai` SDK, passing the API key to the constructor.
+    - Call the `genAI.models.generateContent()` method to send the assembled prompt to the API.
+    - Extract the text result from the API response using the `.text` accessor and return it.
     - Wrap the API call in a `try-catch` block to handle potential failures and log errors.
 
 ### 2.4. Implement Feedback Integrator (`src/comment.ts`)
-- [ ] Implement the `findPreviousComment` function.
-    - Use the Octokit client from `@actions/github` to call `issues.listComments`.
-    - Search for an existing comment by a unique identifier in its body (e.g., ``) and return its ID. Refer to the logic of `peter-evans/find-comment`.[6]
-- [ ] Implement the `postOrUpdateComment` function.
-    - Call `findPreviousComment` to check for an existing comment ID.
-    - If an ID exists, call `issues.updateComment`; otherwise, call `issues.createComment` to post the review result to the PR. Refer to the logic of `peter-evans/create-or-update-comment`.[6]
+- [x] Implement the `findPreviousComment` function.
+    - Use a constant for a unique identifier, e.g., `const COMMENT_TAG = '<!-- COMMENT_TAG: pr-reviewer -->'`, and document that this exact token must be used.
+    - Use the Octokit client to call `issues.listComments` with pagination, iterating through all pages.
+    - Filter comments to find one created by the action's user (the bot) that also contains the `COMMENT_TAG` in its body to avoid false matches.
+- [x] Implement the `postOrUpdateComment` function.
+    - Call `findPreviousComment` to check for an existing comment.
+    - If a comment ID is found, call `issues.updateComment`. Otherwise, call `issues.createComment`.
+    - The generated comment body must always append the `COMMENT_TAG` at the very bottom to ensure idempotent updates.
 
 ### 2.5. Phase 2 Final Verification
-- [ ] Verify that the functions in each module return the correct output types for the expected inputs (type-level verification before unit testing).
-- [ ] Review the code structure to ensure each file adheres to the single-responsibility principle and has low coupling with other modules.
-- [ ] Confirm that all external API calls (Git, GitHub API, Gemini API) are wrapped in appropriate error-handling logic.
+- [x] Verify that the functions in each module return the correct output types for the expected inputs (type-level verification before unit testing).
+- [x] Review the code structure to ensure each file adheres to the single-responsibility principle and has low coupling with other modules.
+- [x] Confirm that all external API calls (Git, GitHub API, Gemini API) are wrapped in appropriate error-handling logic.
 
 ---
 
