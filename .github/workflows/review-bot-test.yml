@@ -18,6 +18,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Action
+        run: npm run build
+
       - name: Run PR Reviewer Action
         uses: ./
         with:
