@@ -1,0 +1,33 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "폰코딩 테스트 레포",
+  "main": "index.js",
+  "scripts": {
+    "build": "ncc build src/main.ts --source-map --license licenses.txt",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/binary-ho/vibe-from-phone.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/binary-ho/vibe-from-phone/issues"
+  },
+  "homepage": "https://github.com/binary-ho/vibe-from-phone#readme",
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@vercel/ncc": "^0.38.3",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/exec": "^1.1.1",
+    "@actions/github": "^6.0.1",
+    "@google/genai": "^1.16.0"
+  }
+}

@@ -1,39 +1,38 @@
-
 ## Phase 1: Project Scaffolding and Initialization
 
 In this phase, the basic project structure and environment for developing a TypeScript-based GitHub Action will be set up.
 
 ### 1.1. Set up TypeScript GitHub Action Project Structure
-- [ ] Create a `package.json` file using the `npm init -y` command.
-- [ ] Create a `src` directory in the project root, and create a `main.ts` file inside it.
-- [ ] Create a `tsconfig.json` file and configure the TypeScript compiler options (e.g., target: `es2022`, module: `NodeNext`, moduleResolution: `NodeNext`, outDir: `dist`).
+- [x] Create a `package.json` file using the `npm init -y` command.
+- [x] Create a `src` directory in the project root, and create a `main.ts` file inside it.
+- [x] Create a `tsconfig.json` file and configure the TypeScript compiler options (e.g., target: `es2022`, module: `NodeNext`, moduleResolution: `NodeNext`, outDir: `dist`).
 
 ### 1.2. Install Dependencies
-- [ ] Install TypeScript-related packages with the command `npm install typescript @types/node --save-dev`.
-- [ ] Install the essential toolkit for GitHub Actions development with `npm install @actions/core @actions/github @actions/exec`.
-- [ ] Install the official SDK for communicating with the Gemini API with `npm install @google/genai`.[1]
+- [x] Install TypeScript-related packages with the command `npm install typescript @types/node --save-dev`.
+- [x] Install the essential toolkit for GitHub Actions development with `npm install @actions/core @actions/github @actions/exec`.
+- [x] Install the official SDK for communicating with the Gemini API with `npm install @google/genai`.[1]
 
 ### 1.3. Define `action.yml` Specification
-- [ ] Create an `action.yml` file in the project root.
-- [ ] Define the Action's `name`, `description`, and execution environment (`runs`).
+- [x] Create an `action.yml` file in the project root.
+- [x] Define the Action's `name`, `description`, and execution environment (`runs`).
     - `runs.using`: `'node20'`
     - `runs.main`: `'dist/index.js'`
-- [ ] Define the Action's `inputs`.
+- [x] Define the Action's `inputs`.
     - `gemini-api-key`: Required (`required: true`), the Gemini API key.
     - `github-token`: Required (`required: true`), defaults to `${{ github.token }}`.
     - `mode`: Not required, defaults to `review`, (values: `review`, `summarize`).
 
 ### 1.4. Configure Build and Packaging
-- [ ] Install the `ncc` package with `npm install @vercel/ncc --save-dev`. `ncc` is used to compile the code and all its dependencies into a single JavaScript file.
-- [ ] Add a build script to the `scripts` section of `package.json`: `"build": "ncc build src/main.ts --source-map --license licenses.txt"`.
+- [x] Install the `ncc` package with `npm install @vercel/ncc --save-dev`. `ncc` is used to compile the code and all its dependencies into a single JavaScript file.
+- [x] Add a build script to the `scripts` section of `package.json`: `"build": "ncc build src/main.ts --source-map --license licenses.txt"`.
 
 ### 1.5. Set up Authentication Credentials
 - [ ] Obtain a Gemini API key from Google AI Studio.[2]
 - [ ] In the GitHub repository where the Action will be tested, store the obtained key as a secret named `GEMINI_API_KEY` under `Settings > Secrets and variables > Actions`.[2]
 
 ### 1.6. Phase 1 Final Verification
-- [ ] Verify that the `npm run build` command executes without errors and that a `dist/index.js` file is generated.
-- [ ] Review the `action.yml` file to ensure it has the correct format and content.
+- [x] Verify that the `npm run build` command executes without errors and that a `dist/index.js` file is generated.
+- [x] Review the `action.yml` file to ensure it has the correct format and content.
 - [ ] Confirm that the `GEMINI_API_KEY` secret is correctly set up in the GitHub repository.
 
 ---
