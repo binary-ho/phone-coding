@@ -101,7 +101,7 @@ In this phase, the implemented modules will be integrated to control the overall
 ### 3.2. Write Test Workflow (`.github/workflows/review-bot-test.yml`)
 - [x] Create the workflow file.
 - [x] Set it to be triggered by the `on: pull_request` event.
-- [x] Specify the required permissions in the `permissions` block: `pull-requests: write`, `contents: read`, and `users: read`.
+- [x] Specify the required permissions in the `permissions` block: `pull-requests: write`, `contents: read`, `users: read`, and `issues: write`.
 - [x] **Define the Job:**
     1. Use `actions/checkout@v4` to check out the code. The `fetch-depth: 0` option must be included.[4, 5]
     2. Add a step to install dependencies with `npm install`.
@@ -154,7 +154,7 @@ In this phase, documentation will be written to help other users easily understa
 - [ ] Clearly explain the Action's features and purpose.
 - [ ] Provide a complete workflow example in the **Usage** section that users can copy and paste.
 - [ ] In the **Inputs** section, list all the inputs defined in `action.yml` in a table format, including their description, whether they are required, and their default values.
-- [ ] Specify the permissions required by the workflow (e.g., `pull-requests: write`) in the **Permissions** section.
+- [ ] Specify the permissions required by the workflow (e.g., `pull-requests: write`, `issues: write`) in the **Permissions** section.
 
 ### 5.2. Versioning and Release
 - [ ] Merge all changes into the `main` branch.
