@@ -44,7 +44,7 @@ In this phase, the core logic modules of the Action will be implemented in TypeS
 ### 2.1. Implement Context Provider (`src/context.ts`)
 - [x] Implement the `getPrContext` function.
     - Use the `context` object from `@actions/github` to extract and return the PR number, title, body, and base and head SHAs.
-    - Guard against non-PR contexts (no `context.payload.pull_request`) and throw a clear error.
+    - Guard against non-PR contexts (no `context.payload.pull_request`) and return `undefined` to allow for graceful exit.
     - Include `{ owner, repo }` from `context.repo` in the returned context.
 - [x] Implement the `getPrDiff` function.
     - Use `@actions/exec` to run the `git diff --no-color ${baseSha}..${headSha}` command.[3]
@@ -63,6 +63,7 @@ In this phase, the core logic modules of the Action will be implemented in TypeS
 - [x] Implement the `callGeminiApi` function.
     - Initialize the Gemini client from the `@google/genai` SDK, passing the API key to the constructor.
     - Call the `genAI.models.generateContent()` method to send the assembled prompt to the API.
+    - **Note**: Ensure a valid and accessible model name (e.g., `gemini-1.5-flash`) is used. The default `gemini-pro` may not be available.
     - Extract the text result from the API response using the `.text` accessor and return it.
     - Wrap the API call in a `try-catch` block to handle potential failures and log errors.
 
@@ -88,30 +89,32 @@ In this phase, the core logic modules of the Action will be implemented in TypeS
 In this phase, the implemented modules will be integrated to control the overall execution flow of the Action, and a workflow will be written to test the Action in a real PR.
 
 ### 3.1. Implement Main Orchestrator (`src/main.ts`)
-- [ ] Define and execute an async `run` function.
-- [ ] Use `@actions/core` to get the `gemini-api-key`, `github-token`, and `mode` inputs.
-- [ ] **Control the execution flow:**
+- [x] Define and execute an async `run` function.
+- [x] Use `@actions/core` to get the `gemini-api-key`, `github-token`, and `mode` inputs.
+- [x] **Control the execution flow:**
     1. Call functions from `context.ts` to get the PR context and diff.
     2. Call the function from `prompt.ts` to generate the appropriate prompt based on the context and `mode`.
     3. Call the function from `gemini.ts` to execute the Gemini API with the generated prompt and receive the result.
     4. Call the function from `comment.ts` to post or update a comment on the PR with Gemini's response.
-- [ ] Handle any errors that occur during the process using `core.setFailed()`.
+- [x] Handle any errors that occur during the process using `core.setFailed()`.
 
 ### 3.2. Write Test Workflow (`.github/workflows/review-bot-test.yml`)
-- [ ] Create the workflow file.
-- [ ] Set it to be triggered by the `on: pull_request` event.
-- [ ] Specify the required permissions in the `permissions` block: `pull-requests: write` and `contents: read`.[7, 8]
-- [ ] **Define the Job:**
+- [x] Create the workflow file.
+- [x] Set it to be triggered by the `on: pull_request` event.
+- [x] Specify the required permissions in the `permissions` block: `pull-requests: write`, `contents: read`, `users: read`, and `issues: write`.
+- [x] **Define the Job:**
     1. Use `actions/checkout@v4` to check out the code. The `fetch-depth: 0` option must be included.[4, 5]
-    2. Use the `uses:./` syntax to call the locally developed Action.
-    3. Use the `with` block to pass the `gemini-api-key` and `github-token` to the Action.
+    2. Add a step to install dependencies with `npm install`.
+    3. Add a step to build the TypeScript code with `npm run build`.
+    4. Use the `uses:./` syntax to call the locally developed Action.
+    5. Use the `with` block to pass the `gemini-api-key` and `github-token` to the Action.
         - `gemini-api-key: ${{ secrets.GEMINI_API_KEY }}`
         - `github-token: ${{ secrets.GITHUB_TOKEN }}`
 
 ### 3.3. Phase 3 Final Verification
-- [ ] Perform a code review of `main.ts` to ensure the `run` function calls the functions from each module in the correct order and with the correct arguments.
-- [ ] Validate the YAML syntax of the test workflow file.
-- [ ] Confirm that the workflow is ready to be triggered correctly on PR creation and updates.
+- [x] Perform a code review of `main.ts` to ensure the `run` function calls the functions from each module in the correct order and with the correct arguments.
+- [x] Validate the YAML syntax of the test workflow file.
+- [x] Confirm that the workflow is ready to be triggered correctly on PR creation and updates.
 
 ---
 
@@ -126,10 +129,10 @@ In this phase, unit and integration tests will be performed to ensure the Action
 - [ ] Add unit tests for other pure functions in the modules.
 
 ### 4.2. Perform Integration Testing
-- [ ] Create a test branch and commit a simple code change.
-- [ ] Create a Pull Request with that branch to trigger the `review-bot-test.yml` workflow.
-- [ ] Verify that the Action runs successfully and posts a comment in the expected format on the PR.
-- [ ] Push a new commit to the PR branch and verify that the Action updates the existing comment instead of posting a new one.
+- [x] Create a test branch and commit a simple code change.
+- [x] Create a Pull Request with that branch to trigger the `review-bot-test.yml` workflow.
+- [x] Verify that the Action runs successfully and posts a comment in the expected format on the PR.
+- [x] Push a new commit to the PR branch and verify that the Action updates the existing comment instead of posting a new one.
 
 ### 4.3. Iterate on Prompt Engineering
 - [ ] Evaluate the quality of the AI's response generated from the integration test.
@@ -151,7 +154,7 @@ In this phase, documentation will be written to help other users easily understa
 - [ ] Clearly explain the Action's features and purpose.
 - [ ] Provide a complete workflow example in the **Usage** section that users can copy and paste.
 - [ ] In the **Inputs** section, list all the inputs defined in `action.yml` in a table format, including their description, whether they are required, and their default values.
-- [ ] Specify the permissions required by the workflow (e.g., `pull-requests: write`) in the **Permissions** section.
+- [ ] Specify the permissions required by the workflow (e.g., `pull-requests: write`, `issues: write`) in the **Permissions** section.
 
 ### 5.2. Versioning and Release
 - [ ] Merge all changes into the `main` branch.
