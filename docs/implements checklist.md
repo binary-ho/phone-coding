@@ -151,10 +151,10 @@ In this phase, unit and integration tests will be performed to ensure the Action
 In this phase, documentation will be written to help other users easily understand and use the Action, and it will be officially versioned and deployed.
 
 ### 5.1. Write `README.md` Document
-- [ ] Clearly explain the Action's features and purpose.
-- [ ] Provide a complete workflow example in the **Usage** section that users can copy and paste.
-- [ ] In the **Inputs** section, list all the inputs defined in `action.yml` in a table format, including their description, whether they are required, and their default values.
-- [ ] Specify the permissions required by the workflow (e.g., `pull-requests: write`, `issues: write`) in the **Permissions** section.
+- [x] Clearly explain the Action's features and purpose.
+- [x] Provide a complete workflow example in the **Usage** section that users can copy and paste.
+- [x] In the **Inputs** section, list all the inputs defined in `action.yml` in a table format, including their description, whether they are required, and their default values.
+- [x] Specify the permissions required by the workflow (e.g., `pull-requests: write`, `issues: write`) in the **Permissions** section.
 
 ### 5.2. Versioning and Release
 - [ ] Merge all changes into the `main` branch.
