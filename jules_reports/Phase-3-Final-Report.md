@@ -30,9 +30,13 @@ Phase 3 체크리스트의 요구사항에 따라 다음의 초기 구현을 진
 - **원인**: `src/gemini.ts`에 하드코딩된 `gemini-pro` 모델이 현재 API 키로 접근할 수 없는 모델이었습니다.
 - **해결**: 사용자의 제안에 따라, 사용 가능한 `gemini-1.5-flash` 모델로 변경한 뒤, 최종적으로 `gemini-2.0-flash` 모델로 업데이트하여 해결했습니다.
 
-### 문제 5: GitHub API 권한 부족
+### 문제 5: GitHub API 권한 부족 (`users: read`)
 - **원인**: Action이 자신의 이전 댓글을 찾기 위해 '인증된 사용자 정보'를 조회하는 API를 호출했으나, 워크플로우 토큰에 해당 API를 호출할 `users: read` 권한이 없었습니다.
 - **해결**: `.github/workflows/review-bot-test.yml`의 `permissions` 블록에 `users: read` 권한을 추가하여 해결했습니다.
+
+### 문제 6: PR 댓글 작성 권한 부족 (`issues: write`)
+- **원인**: PR에 일반 댓글을 작성하는 기능은 내부적으로 Issues API를 사용하므로, `issues: write` 권한이 필요했습니다. 이 권한이 없어 댓글을 작성하지 못하는 잠재적인 오류가 있었습니다.
+- **해결**: `.github/workflows/review-bot-test.yml`의 `permissions` 블록에 `issues: write` 권한을 명시적으로 추가하여 해결했습니다.
 
 ## 3. 최종 요약
 
