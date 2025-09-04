@@ -1,23 +1,77 @@
-# AI 에이전트 지침: Pull Request 리뷰 테스트
+# 가이드: 다른 프로젝트에서 AI 리뷰 액션 테스트하기
 
-안녕하세요, Jules.
+이 문서는 `01_create_test_project.md` 가이드에 따라 생성된 Pull Request(PR)에 대해, 우리가 만든 AI 코드 리뷰 GitHub Action을 적용하고 테스트하는 방법을 안내합니다.
 
-당신의 임무는 특정 Pull Request를 리뷰하여 코드 품질, 잠재적 버그, 보안 취약점 및 스타일 문제를 식별하는 것입니다. 이 테스트는 당신이 얼마나 섬세하게 문제를 찾아내고 명확한 피드백을 제공하는지 평가하기 위해 설계되었습니다.
+## 체크리스트
 
-## 수행할 작업 (Action Items)
+- [ ] 테스트할 프로젝트에 GitHub Actions 워크플로우 디렉토리 생성
+- [ ] `review.yml` 워크플로우 파일 추가
+- [ ] 테스트 프로젝트의 GitHub Secrets에 `GEMINI_API_KEY` 추가
+- [ ] PR을 생성하여 액션이 올바르게 실행되는지 확인
+- [ ] 액션이 PR에 리뷰 코멘트를 남기는지 확인
 
-1.  **Pull Request 컨텍스트 파악**: `feature/ai-review-test-case` 브랜치에서 `main` 브랜치로의 Pull Request를 대상으로 합니다. 이 PR에는 `test-project/app.js` 파일의 변경사항이 포함되어 있습니다.
-2.  **코드 변경사항 분석**: 제시된 코드 변경사항('diff')을 면밀히 검토합니다.
-3.  **리뷰 코멘트 생성**: 아래 체크리스트에 명시된 모든 문제점을 포함하는 종합적인 리뷰를 작성하여 PR에 코멘트로 남겨주세요.
+---
 
-## 리뷰 성공을 위한 체크리스트
+## 1단계: 워크플로우 파일 생성
 
-당신의 리뷰는 아래의 모든 항목을 성공적으로 식별하고 설명해야 합니다.
+테스트용 프로젝트의 루트에 `.github/workflows` 디렉토리를 생성하고, 그 안에 `review.yml` 파일을 추가합니다.
 
-- [ ] **하드코딩된 비밀 키**: 코드 내에 "SECRET_API_KEY_12345_DO_NOT_COMMIT"라는 민감한 정보가 하드코딩되어 있습니다. 이것이 심각한 보안 위험임을 지적해야 합니다.
-- [ ] **안전하지 않은 `eval()` 사용**: 외부 입력을 `eval()` 함수에 전달하고 있습니다. 이는 악의적인 코드가 실행될 수 있는 심각한 보안 취약점(Code Injection)임을 경고해야 합니다.
-- [ ] **네이밍 컨벤션 비일관성**: 초기 코드의 `UserManager` (PascalCase 클래스)가 `user_manager` (snake_case 함수)로 변경되었습니다. 코드베이스 전체의 일관성을 위해 하나의 네이밍 컨벤션을 따르도록 제안해야 합니다.
-- [ ] **비효율적인 루프 사용**: `listAllUsers` 메소드에서 `Map` 객체를 순회하기 위해 `Array.from(this.users.keys())`를 사용한 후 C-style `for` 루프를 사용하고 있습니다. `Map.prototype.forEach`나 `for...of` 루프를 사용하는 것이 더 직접적이고 효율적임을 제안해야 합니다.
-- [ ] **매개변수 변경의 모호함**: `addUser` 함수의 `email` 매개변수가 `data`로 변경되었습니다. 이로 인해 함수가 어떤 종류의 데이터를 기대하는지 불분명해졌으며, `eval`과 결합되어 위험성을 가중시킵니다. 이 변경이 코드의 가독성과 안정성을 해친다는 점을 지적해야 합니다.
+**파일 경로:** `.github/workflows/review.yml`
 
-각 항목에 대해 "왜" 그것이 문제인지, 그리고 "어떻게" 개선할 수 있는지에 대한 구체적인 제안을 포함하여 리뷰의 질을 높여주세요.
+## 2단계: 워크플로우 코드 작성
+
+`review.yml` 파일에 아래의 코드를 작성합니다. 이 코드는 Pull Request가 생성될 때마다 AI 리뷰 액션을 실행시킵니다.
+
+```yaml
+name: 'Run AI Code Review'
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 코드를 체크아웃합니다.
+      # fetch-depth: 0 옵션은 모든 히스토리를 가져와 정확한 diff를 생성하기 위해 필수적입니다.
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. AI 코드 리뷰 액션을 실행합니다.
+      # uses: {owner}/{repo}@{branch} 형식으로 액션을 지정합니다.
+      - name: AI Pull Request Reviewer
+        uses: binary-ho/vibe-from-phone@main
+        with:
+          # GitHub API와 상호작용하기 위한 토큰입니다.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Gemini API 키입니다. 아래 3단계에서 설정할 Secret을 통해 전달해야 합니다.
+          gemini-api-key: ${{ secrets.GEMINI_API_KEY }}
+
+          # 'review' 모드(기본값)로 설정하여 코드 리뷰를 수행하도록 합니다.
+          mode: 'review'
+```
+
+## 3단계: Gemini API 키 설정
+
+이 액션은 Gemini API를 사용하므로, API 키를 안전하게 전달해야 합니다.
+
+1.  테스트용 프로젝트의 GitHub 레포지토리로 이동합니다.
+2.  `Settings` > `Secrets and variables` > `Actions` 메뉴로 이동합니다.
+3.  `New repository secret` 버튼을 클릭합니다.
+4.  **Name**에는 `GEMINI_API_KEY`를 입력합니다.
+5.  **Value**에는 당신의 Gemini API 키를 붙여넣습니다.
+6.  `Add secret`을 클릭하여 저장합니다.
+
+## 4단계: 액션 실행 및 결과 확인
+
+모든 설정이 완료되었습니다.
+
+이제 `01_create_test_project.md` 가이드에 따라 생성한 `feature/ai-review-test-case` 브랜치에서 `main` 브랜치로 Pull Request를 생성(또는 이미 생성했다면 푸시)하면, 이 워크플로우가 자동으로 실행됩니다.
+
+**예상 결과:**
+- 워크플로우가 성공적으로 실행됩니다.
+- 잠시 후, AI 리뷰 액션이 해당 PR에 찾아낸 문제점들을 조목조목 지적하는 코멘트를 남깁니다.
+- 코멘트에는 `01_create_test_project.md`에서 의도적으로 추가했던 보안 문제, 코드 스멜 등이 모두 포함되어 있어야 합니다.
