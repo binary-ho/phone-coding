@@ -1,13 +1,14 @@
-name: 'Version Branch Build & Commit'
+name: 'Build & Commit on Push Version Branch'
 
 on:
-  pull_request:
+  push:
     branches:
       - 'v[0-9][0-9]*'
-    types: [opened, synchronize]
 
 jobs:
   build-and-commit:
+    if: "!contains(github.event.head_commit.message, '@build_output_commit')"
+
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -15,9 +16,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -33,5 +32,4 @@ jobs:
       - name: Commit and push build files
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "CI: Build and commit dist files"
-          branch: ${{ github.head_ref }}
+          commit_message: "feat: Build and commit dist files by CI [@build_output_commit]"
