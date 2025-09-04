@@ -123,9 +123,9 @@ In this phase, the implemented modules will be integrated to control the overall
 In this phase, unit and integration tests will be performed to ensure the Action's stability and quality, and the AI's response quality will be refined.
 
 ### 4.1. Write Unit Tests
-- [ ] Install the Jest testing framework with `npm install jest @types/jest ts-jest --save-dev`.
-- [ ] Set up the `jest.config.js` file.
-- [ ] Write unit tests for the `buildPrompt` function in `prompt.ts` (verify that the expected prompt is generated for various inputs).
+- [x] Install the Jest testing framework with `npm install jest @types/jest ts-jest --save-dev`.
+- [x] Set up the `jest.config.js` file.
+- [x] Write unit tests for the `buildPrompt` function in `prompt.ts` (verify that the expected prompt is generated for various inputs).
 - [ ] Add unit tests for other pure functions in the modules.
 
 ### 4.2. Perform Integration Testing
