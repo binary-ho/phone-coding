@@ -50,10 +50,10 @@ jobs:
           
           # 기존 태그 삭제
           git push origin :refs/tags/$TAG_NAME
-          
+
           # 새 태그 푸시
-          git tag -a $TAG_NAME -m "Release $TAG_NAME with build files"
-          git push origin $TAG_NAME
+          git tag -a -f $TAG_NAME -m "Release $TAG_NAME with build files"
+          git push -f origin $TAG_NAME
           
       - name: Cleanup temporary branch
         run: |
