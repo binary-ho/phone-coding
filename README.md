@@ -1,17 +1,21 @@
 # AI Code Reviewer
 
-This GitHub Action uses Google's Gemini API to automatically review and summarize pull requests. It can be configured to operate in two modes: `review` and `summarize`.
+This GitHub Action uses Google's Gemini API to automatically review and summarize pull requests. It operates in two modes: `review` (provides line-specific code comments) and `summarize` (provides general PR summaries).
 
 ## Features
 
-- **Automatic Code Review:** Provides code reviews on your pull requests.
-- **Pull Request Summarization:** Generates summaries for your pull requests.
-- **Customizable Modes:** Choose between `review` and `summarize` modes to fit your needs.
+- **Automatic Code Review:** Provides detailed code reviews with line-specific comments on your pull requests.
+- **Pull Request Summarization:** Generates comprehensive summaries for your pull requests.
+- **Line-Specific Comments:** Default behavior for review mode - comments appear directly on relevant lines in the diff.
+- **Customizable Modes:** Choose between `review` (line-specific comments) and `summarize` (general comments) modes.
+- **Smart Fallback:** Automatically falls back to general comments when no line-specific issues are found.
 - **Idempotent Commenting:** Updates its own previous comment on new commits instead of creating a new one.
 
 ## Usage
 
 To use this action in your workflow, add the following step to your job. This action is typically triggered by the `pull_request` event.
+
+### Code Review with Line-Specific Comments
 
 ```yaml
 name: 'AI Code Reviewer'
@@ -47,7 +51,20 @@ jobs:
         with:
           gemini-api-key: ${{ secrets.GEMINI_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          mode: 'review' # Optional: 'review' or 'summarize'
+          mode: 'review' # Provides line-specific comments on code changes
+```
+
+### Pull Request Summarization
+
+For generating general PR summaries instead of line-specific reviews:
+
+```yaml
+      - name: Run AI Code Reviewer for Summarization
+        uses: ./ # In a real-world scenario, you would use the repository name, e.g., your-username/your-repo-name@v1
+        with:
+          gemini-api-key: ${{ secrets.GEMINI_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          mode: 'summarize' # Provides general PR summary
 ```
 
 ## Inputs
@@ -56,7 +73,21 @@ jobs:
 |------------------|------------------------------|----------|--------------------|
 | `gemini-api-key` | The Gemini API key.          | `true`   | -                  |
 | `github-token`   | The GitHub token.            | `true`   | `${{ github.token }}` |
-| `mode`           | The mode of operation. Can be `review` or `summarize`. | `false`  | `review`           |
+| `mode`           | The mode of operation. Can be `review` (line-specific comments) or `summarize` (general comments). | `false`  | `review`           |
+
+## Comment Types
+
+### Line-Specific Comments (Review Mode)
+When using `mode: 'review'` (default), the AI will:
+- Analyze each line of the code changes
+- Provide specific feedback directly on relevant lines in the diff
+- Create a GitHub review with inline comments
+- Automatically fall back to general comments if no line-specific issues are found
+
+Line-specific comments appear directly in the "Files changed" tab of your pull request, making it easier to address specific issues in context.
+
+### General Comments (Summarize Mode)
+When using `mode: 'summarize'`, the AI will provide a single comprehensive comment at the PR level, summarizing the overall changes and providing general feedback about the pull request.
 
 ## Permissions
 

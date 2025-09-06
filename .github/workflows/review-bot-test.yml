@@ -29,4 +29,5 @@ jobs:
         uses: ./
         with:
           gemini-api-key: ${{ secrets.GEMINI_API_KEY }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.REMOTE_REPOSITORY_PERSIONAL_ACCESS_TOKEN }}
+          mode: 'review'
