@@ -30,7 +30,35 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Commit and push build files
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "feat: Build and commit dist files by CI [@build_output_commit]"
+      - name: Create temporary branch and commit build files
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          TEMP_BRANCH="temp-branch-for-build-$TAG_NAME"
+          
+          # 임시 브랜치 생성 (현재 태그 위치에서)
+          git checkout -b $TEMP_BRANCH
+          
+          # 빌드 파일 커밋
+          git add dist/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "feat: Add build files for $TAG_NAME by CI [@build_output_commit]"
+
+      - name: Update tag with build files
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          
+          # 기존 태그 삭제
+          git push origin :refs/tags/$TAG_NAME
+          
+          # 새 태그 푸시
+          git tag -a $TAG_NAME -m "Release $TAG_NAME with build files"
+          git push origin $TAG_NAME
+          
+      - name: Cleanup temporary branch
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          TEMP_BRANCH="temp-build-$TAG_NAME"
+          
+          # 임시 브랜치 삭제
+          git branch -D $TEMP_BRANCH || true
