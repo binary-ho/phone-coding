@@ -1,0 +1,126 @@
+name: 'Update v1 Tag to Latest Branch'
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: 'Source branch name to update v1 tag from'
+        required: true
+        default: 'main'
+        type: string
+      force_update:
+        description: 'Force update v1 tag even if it exists'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  update-v1-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 모든 히스토리와 태그를 가져옴
+
+      - name: Verify source branch exists
+        run: |
+          echo "Checking if branch '${{ inputs.source_branch }}' exists..."
+          if ! git show-ref --verify --quiet refs/remotes/origin/${{ inputs.source_branch }}; then
+            echo "❌ Error: Branch '${{ inputs.source_branch }}' does not exist in remote repository"
+            echo "Available branches:"
+            git branch -r --format='%(refname:short)' | sed 's/origin\///'
+            exit 1
+          fi
+          echo "✅ Branch '${{ inputs.source_branch }}' exists"
+
+      - name: Checkout source branch
+        run: |
+          echo "Switching to branch '${{ inputs.source_branch }}'..."
+          git checkout ${{ inputs.source_branch }}
+          git pull origin ${{ inputs.source_branch }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Check current v1 tag
+        id: check_tag
+        run: |
+          if git rev-parse v1 >/dev/null 2>&1; then
+            CURRENT_V1_COMMIT=$(git rev-parse v1)
+            SOURCE_COMMIT=$(git rev-parse ${{ inputs.source_branch }})
+            echo "current_v1_commit=$CURRENT_V1_COMMIT" >> $GITHUB_OUTPUT
+            echo "source_commit=$SOURCE_COMMIT" >> $GITHUB_OUTPUT
+            echo "tag_exists=true" >> $GITHUB_OUTPUT
+            
+            if [ "$CURRENT_V1_COMMIT" = "$SOURCE_COMMIT" ]; then
+              echo "needs_update=false" >> $GITHUB_OUTPUT
+              echo "v1 tag is already up to date with ${{ inputs.source_branch }} branch"
+            else
+              echo "needs_update=true" >> $GITHUB_OUTPUT
+              echo "v1 tag needs to be updated"
+              echo "Current v1 tag points to: $CURRENT_V1_COMMIT"
+              echo "${{ inputs.source_branch }} branch points to: $SOURCE_COMMIT"
+            fi
+          else
+            echo "tag_exists=false" >> $GITHUB_OUTPUT
+            echo "needs_update=true" >> $GITHUB_OUTPUT
+            echo "v1 tag does not exist, will create it"
+          fi
+
+      - name: Add build files to git
+        if: steps.check_tag.outputs.needs_update == 'true' || inputs.force_update
+        run: |
+          git add dist/
+          if ! git diff --cached --quiet; then
+            git commit -m "feat: Add build files for v1 tag update [@build_output_commit]"
+          else
+            echo "No build files to commit"
+          fi
+
+      - name: Force update v1 tag
+        if: steps.check_tag.outputs.needs_update == 'true' || inputs.force_update
+        run: |
+          echo "Updating v1 tag to point to latest ${{ inputs.source_branch }} branch commit..."
+          
+          # 기존 v1 태그가 있다면 삭제
+          if [ "${{ steps.check_tag.outputs.tag_exists }}" = "true" ]; then
+            echo "Deleting existing v1 tag from remote..."
+            git push origin :refs/tags/v1 || echo "Failed to delete remote tag, continuing..."
+          fi
+          
+          # 로컬 v1 태그 삭제 (있다면)
+          git tag -d v1 2>/dev/null || echo "Local v1 tag does not exist"
+          
+          # 새로운 v1 태그 생성
+          git tag -a v1 -m "Release v1 - Updated to latest ${{ inputs.source_branch }} branch ($(date '+%Y-%m-%d %H:%M:%S'))"
+          
+          # 태그를 원격에 강제 푸시
+          git push -f origin v1
+          
+          echo "✅ v1 tag has been successfully updated to latest ${{ inputs.source_branch }} branch!"
+          echo "New v1 tag points to: $(git rev-parse v1)"
+
+      - name: Summary
+        if: steps.check_tag.outputs.needs_update == 'false' && !inputs.force_update
+        run: |
+          echo "ℹ️ v1 tag is already up to date with ${{ inputs.source_branch }} branch. No action needed."
+          echo "Current v1 tag: ${{ steps.check_tag.outputs.current_v1_commit }}"
+          echo "${{ inputs.source_branch }} branch: ${{ steps.check_tag.outputs.source_commit }}"
