@@ -13,7 +13,6 @@ async function run(): Promise<void> {
     const geminiApiKey = core.getInput('gemini-api-key', { required: true });
     const githubToken = core.getInput('github-token', { required: true });
     const mode = core.getInput('mode') || 'review';
-    const enableLineComments = core.getInput('enable-line-comments') === 'true';
 
     if (mode !== 'review' && mode !== 'summarize') {
       throw new Error(`Invalid mode: ${mode}. Must be 'review' or 'summarize'.`);
@@ -29,8 +28,7 @@ async function run(): Promise<void> {
 
     const diff = await getPrDiff(prContext.pr.base_sha, prContext.pr.head_sha);
     
-    if (enableLineComments) {
-      // 라인 코멘트 모드
+    if (mode === 'review') {
       const prompt = buildPromptWithLineComments(
         prContext.pr.title,
         prContext.pr.body,
@@ -59,7 +57,7 @@ async function run(): Promise<void> {
         await postOrUpdateComment(octokit, prContext.repo, prContext.pr.number, parsedResponse.generalComment);
       }
     } else {
-      // 기존 일반 코멘트 모드
+      // 요약 모드 - 일반 코멘트 사용
       const prompt = buildPrompt(prContext.pr.title, prContext.pr.body, diff, mode);
       const geminiResponse = await callGeminiApi(geminiApiKey, prompt);
       await postOrUpdateComment(octokit, prContext.repo, prContext.pr.number, geminiResponse);

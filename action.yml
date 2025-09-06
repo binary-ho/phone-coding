@@ -15,7 +15,3 @@ inputs:
     description: 'The mode of operation.'
     required: false
     default: 'review'
-  enable-line-comments:
-    description: 'Enable line-specific comments'
-    required: false
-    default: 'false'

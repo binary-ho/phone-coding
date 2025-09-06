@@ -1,21 +1,21 @@
 # AI Code Reviewer
 
-This GitHub Action uses Google's Gemini API to automatically review and summarize pull requests. It can be configured to operate in two modes: `review` and `summarize`, with support for both general PR comments and line-specific code comments.
+This GitHub Action uses Google's Gemini API to automatically review and summarize pull requests. It operates in two modes: `review` (provides line-specific code comments) and `summarize` (provides general PR summaries).
 
 ## Features
 
-- **Automatic Code Review:** Provides code reviews on your pull requests.
-- **Pull Request Summarization:** Generates summaries for your pull requests.
-- **Line-Specific Comments:** Leave comments on specific lines of code changes (when enabled).
-- **Customizable Modes:** Choose between `review` and `summarize` modes to fit your needs.
-- **Flexible Comment Types:** Support for both general PR comments and line-specific code comments.
+- **Automatic Code Review:** Provides detailed code reviews with line-specific comments on your pull requests.
+- **Pull Request Summarization:** Generates comprehensive summaries for your pull requests.
+- **Line-Specific Comments:** Default behavior for review mode - comments appear directly on relevant lines in the diff.
+- **Customizable Modes:** Choose between `review` (line-specific comments) and `summarize` (general comments) modes.
+- **Smart Fallback:** Automatically falls back to general comments when no line-specific issues are found.
 - **Idempotent Commenting:** Updates its own previous comment on new commits instead of creating a new one.
 
 ## Usage
 
 To use this action in your workflow, add the following step to your job. This action is typically triggered by the `pull_request` event.
 
-### Basic Usage (General Comments)
+### Code Review with Line-Specific Comments
 
 ```yaml
 name: 'AI Code Reviewer'
@@ -51,45 +51,43 @@ jobs:
         with:
           gemini-api-key: ${{ secrets.GEMINI_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          mode: 'review' # Optional: 'review' or 'summarize'
+          mode: 'review' # Provides line-specific comments on code changes
 ```
 
-### Advanced Usage (Line-Specific Comments)
+### Pull Request Summarization
 
-For more detailed reviews with comments on specific lines of code:
+For generating general PR summaries instead of line-specific reviews:
 
 ```yaml
-      - name: Run AI Code Reviewer with Line Comments
+      - name: Run AI Code Reviewer for Summarization
         uses: ./ # In a real-world scenario, you would use the repository name, e.g., your-username/your-repo-name@v1
         with:
           gemini-api-key: ${{ secrets.GEMINI_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          mode: 'review'
-          enable-line-comments: 'true' # Enable line-specific comments
+          mode: 'summarize' # Provides general PR summary
 ```
 
 ## Inputs
 
-| Input                 | Description                  | Required | Default            |
-|-----------------------|------------------------------|----------|--------------------|
-| `gemini-api-key`      | The Gemini API key.          | `true`   | -                  |
-| `github-token`        | The GitHub token.            | `true`   | `${{ github.token }}` |
-| `mode`                | The mode of operation. Can be `review` or `summarize`. | `false`  | `review`           |
-| `enable-line-comments`| Enable line-specific comments on code changes. When enabled, the AI will provide comments directly on specific lines of the diff. | `false`  | `false`            |
+| Input            | Description                  | Required | Default            |
+|------------------|------------------------------|----------|--------------------|
+| `gemini-api-key` | The Gemini API key.          | `true`   | -                  |
+| `github-token`   | The GitHub token.            | `true`   | `${{ github.token }}` |
+| `mode`           | The mode of operation. Can be `review` (line-specific comments) or `summarize` (general comments). | `false`  | `review`           |
 
 ## Comment Types
 
-### General Comments (Default)
-When `enable-line-comments` is `false` or not specified, the AI will provide a single comprehensive comment at the PR level, summarizing the overall review or changes.
-
-### Line-Specific Comments
-When `enable-line-comments` is `true`, the AI will:
+### Line-Specific Comments (Review Mode)
+When using `mode: 'review'` (default), the AI will:
 - Analyze each line of the code changes
 - Provide specific feedback directly on relevant lines in the diff
 - Create a GitHub review with inline comments
-- Fall back to general comments if no line-specific issues are found
+- Automatically fall back to general comments if no line-specific issues are found
 
 Line-specific comments appear directly in the "Files changed" tab of your pull request, making it easier to address specific issues in context.
+
+### General Comments (Summarize Mode)
+When using `mode: 'summarize'`, the AI will provide a single comprehensive comment at the PR level, summarizing the overall changes and providing general feedback about the pull request.
 
 ## Permissions
 

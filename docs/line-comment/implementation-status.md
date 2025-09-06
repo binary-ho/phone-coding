@@ -80,8 +80,8 @@
 ### ✅ Phase 5: 메인 로직 통합 (`src/main.ts`)
 - **완료일**: 2025-09-06
 - **구현 내용**:
-  - `enable-line-comments` 입력 파라미터 처리 추가
-  - 라인 코멘트 모드와 일반 코멘트 모드 조건부 분기 구현
+  - 'review' 모드에서 라인 코멘트를 기본 동작으로 설정
+  - 'summarize' 모드에서는 일반 코멘트 사용
   - 새로운 모듈들 통합 (diff-parser, ai-response-parser, line-comment)
   - 기존 리뷰 중복 방지 로직 구현
   - 라인 코멘트가 없을 때 일반 코멘트로 폴백하는 로직 추가
@@ -89,9 +89,9 @@
 ### ✅ Phase 6: Action 설정 업데이트 (`action.yml`)
 - **완료일**: 2025-09-06
 - **구현 내용**:
-  - `enable-line-comments` 입력 파라미터 추가
-  - 기본값 'false'로 설정하여 기존 동작 유지
-  - 적절한 설명 추가
+  - 불필요한 `enable-line-comments` 파라미터 제거
+  - 라인 코멘트가 'review' 모드의 기본 동작으로 설정
+  - 간소화된 설정으로 사용성 향상
 
 ## 기술적 고려사항
 
@@ -115,20 +115,27 @@
 - ✅ **Phases 4-6**: 메인 로직 통합 및 설정 업데이트
 
 ### 사용 방법
-이제 워크플로우에서 다음과 같이 라인 코멘트 기능을 활성화할 수 있습니다:
+이제 워크플로우에서 다음과 같이 라인 코멘트 기능을 사용할 수 있습니다:
 
 ```yaml
-- name: Run AI Code Reviewer with Line Comments
+- name: Run AI Code Reviewer (Line Comments)
   uses: ./
   with:
     gemini-api-key: ${{ secrets.GEMINI_API_KEY }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    mode: 'review'
-    enable-line-comments: 'true'  # 라인 코멘트 활성화
+    mode: 'review'  # 라인 코멘트가 기본 동작
+
+- name: Run AI Code Reviewer (General Summary)
+  uses: ./
+  with:
+    gemini-api-key: ${{ secrets.GEMINI_API_KEY }}
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    mode: 'summarize'  # 일반 코멘트 사용
 ```
 
 ### 주요 특징
-1. **하위 호환성**: 기본값이 'false'로 설정되어 기존 동작 유지
+1. **기본 동작**: 'review' 모드에서 라인 코멘트가 기본으로 활성화
 2. **스마트 폴백**: 라인 코멘트가 없을 때 자동으로 일반 코멘트로 전환
 3. **중복 방지**: 기존 리뷰가 있을 때 중복 생성 방지
 4. **완전한 테스트 커버리지**: 51개 테스트로 모든 기능 검증
+5. **간소화된 설정**: 불필요한 파라미터 제거로 사용성 향상
