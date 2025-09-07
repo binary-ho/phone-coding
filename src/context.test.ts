@@ -1,4 +1,4 @@
-import { getPrContext, getPrDiff } from './context';
+import { getPullRequestContext, getPrDiff } from './context';
 import * as github from '@actions/github';
 import * as exec from '@actions/exec';
 
@@ -52,7 +52,7 @@ describe('context', () => {
       };
 
       // Act
-      const prContext = await getPrContext(mockOctokit as any);
+      const prContext = await getPullRequestContext(mockOctokit as any);
 
       // Assert
       expect(mockOctokit.rest.pulls.get).toHaveBeenCalledWith({
@@ -78,7 +78,7 @@ describe('context', () => {
       const mockOctokit = { rest: { pulls: { get: jest.fn() } } };
 
       // Act
-      const prContext = await getPrContext(mockOctokit as any);
+      const prContext = await getPullRequestContext(mockOctokit as any);
 
       // Assert
       expect(prContext).toBeUndefined();
