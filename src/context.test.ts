@@ -1,4 +1,4 @@
-import { getPrContext, getPrDiff } from './context';
+import { getPullRequestContext, getPullRequestDiff } from './context';
 import * as github from '@actions/github';
 import * as exec from '@actions/exec';
 
@@ -52,7 +52,7 @@ describe('context', () => {
       };
 
       // Act
-      const prContext = await getPrContext(mockOctokit as any);
+      const prContext = await getPullRequestContext(mockOctokit as any);
 
       // Assert
       expect(mockOctokit.rest.pulls.get).toHaveBeenCalledWith({
@@ -78,7 +78,7 @@ describe('context', () => {
       const mockOctokit = { rest: { pulls: { get: jest.fn() } } };
 
       // Act
-      const prContext = await getPrContext(mockOctokit as any);
+      const prContext = await getPullRequestContext(mockOctokit as any);
 
       // Assert
       expect(prContext).toBeUndefined();
@@ -93,7 +93,7 @@ describe('context', () => {
       const headSha = 'head456';
 
       // Act
-      await getPrDiff(baseSha, headSha);
+      await getPullRequestDiff(baseSha, headSha);
 
       // Assert
       expect(mockedExec).toHaveBeenCalledWith(
@@ -112,7 +112,7 @@ describe('context', () => {
       });
 
       // Act
-      const diff = await getPrDiff('base-sha', 'head-sha');
+      const diff = await getPullRequestDiff('base-sha', 'head-sha');
 
       // Assert
       expect(diff).toBe(diffOutput);

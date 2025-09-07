@@ -1,5 +1,7 @@
 import * as github from '@actions/github';
 
+export type LineComments = LineComment[];
+
 export interface LineComment {
   path: string;
   line: number;
@@ -16,14 +18,13 @@ export const createLineComments = async (
   octokit: ReturnType<typeof github.getOctokit>,
   repo: { owner: string; repo: string },
   pull_number: number,
-  reviewData: ReviewData
+  lineComments: LineComments,
 ) => {
   return await octokit.rest.pulls.createReview({
     ...repo,
     pull_number,
-    body: reviewData.body,
     event: 'COMMENT',
-    comments: reviewData.comments,
+    comments: lineComments,
   });
 };
 

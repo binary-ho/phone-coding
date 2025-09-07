@@ -11,7 +11,7 @@ permissions:
   issues: write
 
 jobs:
-  test:
+  review-bot-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository

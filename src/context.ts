@@ -1,9 +1,10 @@
 import * as github from '@actions/github';
 import * as exec from '@actions/exec';
+import {PullRequestContext} from "./pull-request-context";
 
-export const getPrContext = async (
+export const getPullRequestContext = async (
   octokit: ReturnType<typeof github.getOctokit>
-) => {
+): Promise<PullRequestContext> => {
   const { context } = github;
   const { payload, repo, issue } = context;
 
@@ -27,10 +28,10 @@ export const getPrContext = async (
       base_sha: pr.base.sha,
       head_sha: pr.head.sha,
     },
-  };
+  } as PullRequestContext;
 };
 
-export const getPrDiff = async (baseSha: string, headSha: string): Promise<string> => {
+export const getPullRequestDiff = async (baseSha: string, headSha: string): Promise<string> => {
   let diff = '';
   const options = {
     listeners: {

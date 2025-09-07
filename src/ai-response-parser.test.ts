@@ -1,4 +1,4 @@
-import { parseAIResponseForLineComments } from './ai-response-parser';
+import { parseLineCommentReviewForLineComments } from './ai-response-parser';
 import { DiffLine } from './diff-parser';
 
 describe('ai-response-parser', () => {
@@ -40,26 +40,22 @@ src/utils.ts:20: TODO comments should be resolved before merging.
 The changes improve the functionality but need cleanup.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
-      expect(result.lineComments).toHaveLength(2);
-      expect(result.lineComments[0]).toEqual({
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
         path: 'src/example.ts',
         line: 10,
         side: 'RIGHT',
         body: 'This console.log should be removed in production code.'
       });
-      expect(result.lineComments[1]).toEqual({
+      expect(result[1]).toEqual({
         path: 'src/utils.ts',
         line: 20,
         side: 'RIGHT',
         body: 'TODO comments should be resolved before merging.'
       });
-      expect(result.generalComment).toContain('Overall, this PR looks good');
-      expect(result.generalComment).toContain('The changes improve the functionality');
-      expect(result.generalComment).not.toContain('src/example.ts:10:');
-      expect(result.generalComment).not.toContain('src/utils.ts:20:');
     });
 
     it('should handle AI response with only general comments', () => {
@@ -69,11 +65,10 @@ The implementation follows best practices and is well-structured.
 No specific line-level issues were found.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
-      expect(result.lineComments).toHaveLength(0);
-      expect(result.generalComment).toBe(aiResponse);
+      expect(result).toHaveLength(0);
     });
 
     it('should handle AI response with only line comments', () => {
@@ -82,23 +77,22 @@ No specific line-level issues were found.`;
 src/utils.ts:20: Complete this TODO item.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
-      expect(result.lineComments).toHaveLength(2);
-      expect(result.lineComments[0]).toEqual({
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
         path: 'src/example.ts',
         line: 10,
         side: 'RIGHT',
         body: 'Remove this debug statement.'
       });
-      expect(result.lineComments[1]).toEqual({
+      expect(result[1]).toEqual({
         path: 'src/utils.ts',
         line: 20,
         side: 'RIGHT',
         body: 'Complete this TODO item.'
       });
-      expect(result.generalComment).toBe('');
     });
 
     it('should filter out line comments for non-existent lines in diff', () => {
@@ -113,25 +107,22 @@ src/utils.ts:20: Valid comment for existing line.
 Overall assessment complete.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
-      expect(result.lineComments).toHaveLength(2);
-      expect(result.lineComments[0]).toEqual({
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
         path: 'src/example.ts',
         line: 10,
         side: 'RIGHT',
         body: 'Valid comment for existing line.'
       });
-      expect(result.lineComments[1]).toEqual({
+      expect(result[1]).toEqual({
         path: 'src/utils.ts',
         line: 20,
         side: 'RIGHT',
         body: 'Valid comment for existing line.'
       });
-      // Invalid comments should remain in general comment
-      expect(result.generalComment).toContain('src/example.ts:99:');
-      expect(result.generalComment).toContain('src/nonexistent.ts:5:');
     });
 
     it('should handle malformed line comment formats', () => {
@@ -147,21 +138,16 @@ src/example.ts: Missing line number.
 More general feedback.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
-      expect(result.lineComments).toHaveLength(1);
-      expect(result.lineComments[0]).toEqual({
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
         path: 'src/example.ts',
         line: 10,
         side: 'RIGHT',
         body: 'Valid format.'
       });
-      // Malformed comments should remain in general comment
-      expect(result.generalComment).toContain('src/example.ts:invalid:');
-      expect(result.generalComment).toContain('invalid-format:');
-      expect(result.generalComment).toContain('src/example.ts:');
-      expect(result.generalComment).toContain(':15:');
     });
 
     it('should handle empty AI response', () => {
@@ -169,11 +155,10 @@ More general feedback.`;
       const aiResponse = '';
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
-      expect(result.lineComments).toHaveLength(0);
-      expect(result.generalComment).toBe('');
+      expect(result).toHaveLength(0);
     });
 
     it('should handle AI response with whitespace and formatting', () => {
@@ -186,24 +171,22 @@ src/utils.ts:20:Comment without space after colon
    Trailing general comment.   `;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
-      expect(result.lineComments).toHaveLength(2);
-      expect(result.lineComments[0]).toEqual({
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
         path: 'src/example.ts',
         line: 10,
         side: 'RIGHT',
         body: 'Comment with extra spaces'
       });
-      expect(result.lineComments[1]).toEqual({
+      expect(result[1]).toEqual({
         path: 'src/utils.ts',
         line: 20,
         side: 'RIGHT',
         body: 'Comment without space after colon'
       });
-      expect(result.generalComment.trim()).toContain('General comment with leading spaces');
-      expect(result.generalComment.trim()).toContain('Trailing general comment');
     });
 
     it('should handle line comments with complex file paths', () => {
@@ -231,17 +214,17 @@ tests/unit/utils.spec.ts:10: This test assertion could be more descriptive.
 Overall the changes look good.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, complexDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, complexDiffLines);
 
       // Assert
-      expect(result.lineComments).toHaveLength(2);
-      expect(result.lineComments[0]).toEqual({
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
         path: 'src/components/ui/Button.tsx',
         line: 25,
         side: 'RIGHT',
         body: 'Consider adding proper TypeScript types for the onClick handler.'
       });
-      expect(result.lineComments[1]).toEqual({
+      expect(result[1]).toEqual({
         path: 'tests/unit/utils.spec.ts',
         line: 10,
         side: 'RIGHT',
@@ -261,24 +244,22 @@ but should be treated as one comment.
 Final thoughts on the PR.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
-      expect(result.lineComments).toHaveLength(2);
-      expect(result.lineComments[0]).toEqual({
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
         path: 'src/example.ts',
         line: 10,
         side: 'RIGHT',
         body: 'This is a single line comment.'
       });
-      expect(result.lineComments[1]).toEqual({
+      expect(result[1]).toEqual({
         path: 'src/utils.ts',
         line: 20,
         side: 'RIGHT',
         body: 'This is a multiline comment'
       });
-      // The remaining multiline part should stay in general comment
-      expect(result.generalComment).toContain('that spans multiple lines');
     });
 
     it('should handle duplicate line comments', () => {
@@ -292,23 +273,23 @@ src/utils.ts:20: Comment about different line.
 End of review.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
-      expect(result.lineComments).toHaveLength(3);
-      expect(result.lineComments[0]).toEqual({
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({
         path: 'src/example.ts',
         line: 10,
         side: 'RIGHT',
         body: 'First comment about this line.'
       });
-      expect(result.lineComments[1]).toEqual({
+      expect(result[1]).toEqual({
         path: 'src/example.ts',
         line: 10,
         side: 'RIGHT',
         body: 'Second comment about the same line.'
       });
-      expect(result.lineComments[2]).toEqual({
+      expect(result[2]).toEqual({
         path: 'src/utils.ts',
         line: 20,
         side: 'RIGHT',
@@ -324,11 +305,10 @@ src/utils.ts:20: Neither will this one.
 General feedback remains.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, []);
+      const result = parseLineCommentReviewForLineComments(aiResponse, []);
 
       // Assert
-      expect(result.lineComments).toHaveLength(0);
-      expect(result.generalComment).toBe(aiResponse);
+      expect(result).toHaveLength(0);
     });
   });
 });
