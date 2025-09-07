@@ -18,7 +18,10 @@ Please review the following Pull Request and Provide line comments in the follow
 
 # 3. Review Rules
 please perform code review for the changes
-1. Please strictly follow the Line Comments Format
-2. Please only point out parts that need changes
-3. If there are no issues, respond with "No issues found."
-4. Please write in Korean.
+1. write in Korean.
+2. follow strictly the Line Comments Format
+3. point out only parts that need changes
+4. If there are no issues, respond with "발견 이슈 없음"
+5. do not comment chore issues
+   - do not request to add line comments for chore description
+6. When requesting changes, provide justification.
