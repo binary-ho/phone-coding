@@ -7,5 +7,3 @@ Please review the following Pull Request And provide line comments in the follow
 - 예시:
     - src/example.ts:42: 이 함수는 null 체크가 필요합니다.
     - src/utils.ts:15: 이 로직은 더 효율적으로 작성할 수 있습니다.
-
-## 2. check list
