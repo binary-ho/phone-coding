@@ -2,11 +2,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // prompt 파일명
-const PULL_REQUEST_SUMMARIZE_PROMPT = 'pull-request-summarize';
-const LINE_COMMENT_PROMPT = 'review-korean-line-comments';
+const PULL_REQUEST_SUMMARIZE_PROMPT = 'pull-request-summarize.md';
+const LINE_COMMENT_PROMPT = 'review-and-comment-by-line.md';
 
 const loadPromptTemplate = (templateName: string): string => {
-  const templatePath = path.join(__dirname, '..', 'prompts', `${templateName}.md`);
+  const templatePath = path.join(__dirname, '..', 'prompts', templateName);
   return fs.readFileSync(templatePath, 'utf-8');
 };
 
