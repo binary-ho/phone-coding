@@ -31,7 +31,7 @@ export const getPullRequestContext = async (
   } as PullRequestContext;
 };
 
-export const getPrDiff = async (baseSha: string, headSha: string): Promise<string> => {
+export const getPullRequestDiff = async (baseSha: string, headSha: string): Promise<string> => {
   let diff = '';
   const options = {
     listeners: {

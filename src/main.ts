@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import { getPullRequestContext, getPrDiff } from './context';
+import { getPullRequestContext, getPullRequestDiff } from './context';
 import { buildSummarizePrompt, buildPullRequestLineCommentsPrompt } from './prompt';
 import { callGeminiApi } from './gemini';
 import { postOrUpdateComment } from './comment';
@@ -16,21 +16,14 @@ async function run(): Promise<void> {
   try {
     const geminiApiKey = core.getInput('gemini-api-key', { required: true });
     const githubToken = core.getInput('github-token', { required: true });
-    const mode = core.getInput('mode') || 'review';
 
-    if (mode !== 'review' && mode !== 'summarize') {
-      throw new Error(`Invalid mode: ${mode}. Must be 'review' or 'summarize'.`);
-    }
+    const mode = core.getInput('mode') || 'review';
+    validateModeEnvironment(mode);
 
     const octokit: Octokit = github.getOctokit(githubToken);
-
     const pullRequestContext: PullRequestContext = await getPullRequestContext(octokit);
-    if (!pullRequestContext) {
-      core.info('This action is not running in a pull request context. Skipping.');
-      return;
-    }
 
-    const diff = await getPrDiff(pullRequestContext.pr.base_sha, pullRequestContext.pr.head_sha);
+    const diff = await getPullRequestDiff(pullRequestContext.pr.base_sha, pullRequestContext.pr.head_sha);
 
     // 1. 요약
     await summaryPullRequestAndComment(pullRequestContext, diff, octokit, geminiApiKey);
@@ -79,6 +72,13 @@ const reviewPullRequestAndComment = async (pullRequestContext: PullRequestContex
     body: parsedResponse.generalComment + '\n\n<!-- gemini-line-reviewer -->',
     comments: parsedResponse.lineComments
   });
+}
+
+const validateModeEnvironment = (mode: string) => {
+  const validModes = ['review', 'summarize'];
+  if (!validModes.includes(mode)) {
+    throw new Error(`Invalid mode: ${mode}. Must be 'review' or 'summarize'.`);
+  }
 }
 
 run();
