@@ -1,4 +1,4 @@
-import { parseDiff } from './diff-parser';
+import { parseDiffLines } from './diff-parser';
 
 describe('diff-parser', () => {
   describe('parseDiff', () => {
@@ -16,7 +16,7 @@ index 1234567..abcdefg 100644
  }`;
 
       // Act
-      const result = parseDiff(diff);
+      const result = parseDiffLines(diff);
 
       // Assert
       expect(result).toHaveLength(2);
@@ -49,7 +49,7 @@ index 1234567..abcdefg 100644
  }`;
 
       // Act
-      const result = parseDiff(diff);
+      const result = parseDiffLines(diff);
 
       // Assert
       expect(result).toHaveLength(2);
@@ -81,7 +81,7 @@ index 1234567..abcdefg 100644
  }`;
 
       // Act
-      const result = parseDiff(diff);
+      const result = parseDiffLines(diff);
 
       // Assert
       expect(result).toHaveLength(2);
@@ -119,7 +119,7 @@ index 7890123..defghij 100644
  export { x };`;
 
       // Act
-      const result = parseDiff(diff);
+      const result = parseDiffLines(diff);
 
       // Assert
       expect(result).toHaveLength(2);
@@ -153,7 +153,7 @@ index 1234567..abcdefg 100644
  }`;
 
       // Act
-      const result = parseDiff(diff);
+      const result = parseDiffLines(diff);
 
       // Assert
       expect(result).toHaveLength(2);
@@ -176,7 +176,7 @@ index 1234567..abcdefg 100644
       const diff = '';
 
       // Act
-      const result = parseDiff(diff);
+      const result = parseDiffLines(diff);
 
       // Assert
       expect(result).toEqual([]);
@@ -190,7 +190,7 @@ index 1234567..1234567 100644
 +++ b/src/unchanged.ts`;
 
       // Act
-      const result = parseDiff(diff);
+      const result = parseDiffLines(diff);
 
       // Assert
       expect(result).toEqual([]);
@@ -203,7 +203,7 @@ index 1234567..abcdefg 100644
 Binary files a/image.png and b/image.png differ`;
 
       // Act
-      const result = parseDiff(diff);
+      const result = parseDiffLines(diff);
 
       // Assert
       expect(result).toEqual([]);
@@ -216,7 +216,7 @@ random text
 +some added line without proper context`;
 
       // Act
-      const result = parseDiff(diff);
+      const result = parseDiffLines(diff);
 
       // Assert
       // The parser will still process lines starting with '+' even without proper context
@@ -247,7 +247,7 @@ index 1234567..abcdefg 100644
  }`;
 
       // Act
-      const result = parseDiff(diff);
+      const result = parseDiffLines(diff);
 
       // Assert
       expect(result).toHaveLength(2);
@@ -281,7 +281,7 @@ index 1234567..abcdefg 100644
  }`;
 
       // Act
-      const result = parseDiff(diff);
+      const result = parseDiffLines(diff);
 
       // Assert
       expect(result).toHaveLength(1);

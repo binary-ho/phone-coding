@@ -4,8 +4,8 @@ import { getPrContext, getPrDiff } from './context';
 import { buildSummarizePrompt, buildPullRequestLineCommentsPrompt } from './prompt';
 import { callGeminiApi } from './gemini';
 import { postOrUpdateComment } from './comment';
-import { parseDiff } from './diff-parser';
-import { parseAIResponseForLineComments } from './ai-response-parser';
+import { parseDiffLines } from './diff-parser';
+import { parseLineCommentReviewForLineComments } from './ai-response-parser';
 import { createLineComments, findExistingReview } from './line-comment';
 
 async function run(): Promise<void> {
@@ -29,15 +29,26 @@ async function run(): Promise<void> {
     const diff = await getPrDiff(prContext.pr.base_sha, prContext.pr.head_sha);
     
     if (mode === 'review') {
-      const prompt = buildPullRequestLineCommentsPrompt(
+      // 1. 요약 프롬프트로 첫 번째 API 호출 및 일반 코멘트 작성
+      const summaryPrompt = buildSummarizePrompt(
+        prContext.pr.title,
+        prContext.pr.body,
+        diff,
+      );
+      const summaryResponse = await callGeminiApi(geminiApiKey, summaryPrompt);
+      await postOrUpdateComment(octokit, prContext.repo, prContext.pr.number, summaryResponse);
+      
+      // 2. 라인 코멘트 프롬프트로 두 번째 API 호출
+      const lineCommentsPrompt = buildPullRequestLineCommentsPrompt(
         prContext.pr.title,
         prContext.pr.body,
         diff,
       );
       
-      const aiResponse = await callGeminiApi(geminiApiKey, prompt);
-      const diffLines = parseDiff(diff);
-      const parsedResponse = parseAIResponseForLineComments(aiResponse, diffLines);
+      const lineCommentReviewResponse = await callGeminiApi(geminiApiKey, lineCommentsPrompt);
+      const parsedResponse = parseLineCommentReviewForLineComments(
+          lineCommentReviewResponse, parseDiffLines(diff)
+      );
       
       // 기존 리뷰 확인 및 생성
       const existingReview = await findExistingReview(

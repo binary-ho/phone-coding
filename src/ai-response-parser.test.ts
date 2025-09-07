@@ -1,4 +1,4 @@
-import { parseAIResponseForLineComments } from './ai-response-parser';
+import { parseLineCommentReviewForLineComments } from './ai-response-parser';
 import { DiffLine } from './diff-parser';
 
 describe('ai-response-parser', () => {
@@ -40,7 +40,7 @@ src/utils.ts:20: TODO comments should be resolved before merging.
 The changes improve the functionality but need cleanup.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
       expect(result.lineComments).toHaveLength(2);
@@ -69,7 +69,7 @@ The implementation follows best practices and is well-structured.
 No specific line-level issues were found.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
       expect(result.lineComments).toHaveLength(0);
@@ -82,7 +82,7 @@ No specific line-level issues were found.`;
 src/utils.ts:20: Complete this TODO item.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
       expect(result.lineComments).toHaveLength(2);
@@ -113,7 +113,7 @@ src/utils.ts:20: Valid comment for existing line.
 Overall assessment complete.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
       expect(result.lineComments).toHaveLength(2);
@@ -147,7 +147,7 @@ src/example.ts: Missing line number.
 More general feedback.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
       expect(result.lineComments).toHaveLength(1);
@@ -169,7 +169,7 @@ More general feedback.`;
       const aiResponse = '';
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
       expect(result.lineComments).toHaveLength(0);
@@ -186,7 +186,7 @@ src/utils.ts:20:Comment without space after colon
    Trailing general comment.   `;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
       expect(result.lineComments).toHaveLength(2);
@@ -231,7 +231,7 @@ tests/unit/utils.spec.ts:10: This test assertion could be more descriptive.
 Overall the changes look good.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, complexDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, complexDiffLines);
 
       // Assert
       expect(result.lineComments).toHaveLength(2);
@@ -261,7 +261,7 @@ but should be treated as one comment.
 Final thoughts on the PR.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
       expect(result.lineComments).toHaveLength(2);
@@ -292,7 +292,7 @@ src/utils.ts:20: Comment about different line.
 End of review.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, mockDiffLines);
+      const result = parseLineCommentReviewForLineComments(aiResponse, mockDiffLines);
 
       // Assert
       expect(result.lineComments).toHaveLength(3);
@@ -324,7 +324,7 @@ src/utils.ts:20: Neither will this one.
 General feedback remains.`;
 
       // Act
-      const result = parseAIResponseForLineComments(aiResponse, []);
+      const result = parseLineCommentReviewForLineComments(aiResponse, []);
 
       // Assert
       expect(result.lineComments).toHaveLength(0);

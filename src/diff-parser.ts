@@ -5,7 +5,7 @@ export interface DiffLine {
   type: 'added' | 'removed' | 'context';
 }
 
-export const parseDiff = (diff: string): DiffLine[] => {
+export const parseDiffLines = (diff: string): DiffLine[] => {
   const lines = diff.split('\n');
   const result: DiffLine[] = [];
   let currentPath = '';

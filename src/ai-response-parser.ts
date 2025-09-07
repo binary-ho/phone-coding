@@ -6,7 +6,7 @@ export interface ParsedAIResponse {
   lineComments: LineComment[];
 }
 
-export const parseAIResponseForLineComments = (
+export const parseLineCommentReviewForLineComments = (
   aiResponse: string,
   diffLines: DiffLine[]
 ): ParsedAIResponse => {
