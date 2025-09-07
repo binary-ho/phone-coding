@@ -6,7 +6,7 @@ import { callGeminiApi } from './gemini';
 import { postOrUpdateComment } from './comment';
 import { parseDiffLines } from './diff-parser';
 import { parseLineCommentReviewForLineComments } from './ai-response-parser';
-import {createLineComments, findExistingReview} from './line-comment';
+import {createLineComments, findExistingReview, LineComments} from './line-comment';
 import {GitHub} from "@actions/github/lib/utils";
 import {PullRequestContext} from "./pull-request-context";
 
@@ -65,21 +65,20 @@ const reviewPullRequestAndComment = async (pullRequestContext: PullRequestContex
   const diffLines = parseDiffLines(diff);
   core.info(`[DEBUG] Parsed diff lines count: ${diffLines.length}`);
 
-  const parsedResponse = parseLineCommentReviewForLineComments(
+  const lineComments: LineComments = parseLineCommentReviewForLineComments(
       lineCommentReviewResponse, diffLines
   );
 
-  core.info(`[DEBUG] Parsed line comments count: ${parsedResponse.lineComments.length}`);
+  core.info(`[DEBUG] Parsed line comments count: ${lineComments.length}`);
 
-  if (parsedResponse.lineComments.length === 0) {
+  if (lineComments.length === 0) {
     core.info('No line comments to add. Skipping line comment creation.');
     return;
   }
 
-  await createLineComments(octokit, pullRequestContext.repo, pullRequestContext.pr.number, {
-    body: parsedResponse.generalComment + '\n\n<!-- gemini-line-reviewer -->',
-    comments: parsedResponse.lineComments
-  });
+  await createLineComments(
+      octokit, pullRequestContext.repo, pullRequestContext.pr.number, lineComments
+  );
 }
 
 const validateModeEnvironment = (mode: string) => {
