@@ -6,7 +6,7 @@ import { callGeminiApi } from './gemini';
 import { postOrUpdateComment } from './comment';
 import { parseDiffLines } from './diff-parser';
 import { parseLineCommentReviewForLineComments } from './ai-response-parser';
-import { createLineComments, findExistingReview } from './line-comment';
+import {createLineComments, findExistingReview} from './line-comment';
 import {GitHub} from "@actions/github/lib/utils";
 import {PullRequestContext} from "./pull-request-context";
 
@@ -30,6 +30,7 @@ async function run(): Promise<void> {
 
     if (mode !== 'summarize') {
       // 2. PR Review + Line Comment
+      core.info('[DEBUG] Starting PR review and line comment process...');
       await reviewPullRequestAndComment(pullRequestContext, diff, octokit, geminiApiKey);
     }
   } catch (error) {
@@ -59,9 +60,16 @@ const reviewPullRequestAndComment = async (pullRequestContext: PullRequestContex
       pullRequestContext.pr.title, pullRequestContext.pr.body, diff
   );
   const lineCommentReviewResponse = await callGeminiApi(geminiApiKey, lineCommentsPrompt);
+  core.info(`[DEBUG] AI Response: ${lineCommentReviewResponse}`);
+
+  const diffLines = parseDiffLines(diff);
+  core.info(`[DEBUG] Parsed diff lines count: ${diffLines.length}`);
+
   const parsedResponse = parseLineCommentReviewForLineComments(
-      lineCommentReviewResponse, parseDiffLines(diff)
+      lineCommentReviewResponse, diffLines
   );
+
+  core.info(`[DEBUG] Parsed line comments count: ${parsedResponse.lineComments.length}`);
 
   if (parsedResponse.lineComments.length === 0) {
     core.info('No line comments to add. Skipping line comment creation.');
