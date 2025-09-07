@@ -59,8 +59,10 @@ const reviewPullRequestAndComment = async (pullRequestContext: PullRequestContex
   const lineCommentsPrompt = buildPullRequestLineCommentsPrompt(
       pullRequestContext.pr.title, pullRequestContext.pr.body, diff
   );
+  core.info(`[DEBUG] PR Line Review Prompt: ${lineCommentsPrompt}`);
+
   const lineCommentReviewResponse = await callGeminiApi(geminiApiKey, lineCommentsPrompt);
-  core.info(`[DEBUG] AI Response: ${lineCommentReviewResponse}`);
+  core.info(`[DEBUG] PR Line Review AI Response: ${lineCommentReviewResponse}`);
 
   const diffLines = parseDiffLines(diff);
   core.info(`[DEBUG] Parsed diff lines count: ${diffLines.length}`);
@@ -68,7 +70,6 @@ const reviewPullRequestAndComment = async (pullRequestContext: PullRequestContex
   const lineComments: LineComments = parseLineCommentReviewForLineComments(
       lineCommentReviewResponse, diffLines
   );
-
   core.info(`[DEBUG] Parsed line comments count: ${lineComments.length}`);
 
   if (lineComments.length === 0) {
