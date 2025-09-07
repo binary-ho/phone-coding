@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { getPrContext, getPrDiff } from './context';
-import { buildPrompt, buildPromptWithLineComments } from './prompt';
+import { buildSummarizePrompt, buildPullRequestLineCommentsPrompt } from './prompt';
 import { callGeminiApi } from './gemini';
 import { postOrUpdateComment } from './comment';
 import { parseDiff } from './diff-parser';
@@ -29,11 +29,10 @@ async function run(): Promise<void> {
     const diff = await getPrDiff(prContext.pr.base_sha, prContext.pr.head_sha);
     
     if (mode === 'review') {
-      const prompt = buildPromptWithLineComments(
+      const prompt = buildPullRequestLineCommentsPrompt(
         prContext.pr.title,
         prContext.pr.body,
         diff,
-        mode
       );
       
       const aiResponse = await callGeminiApi(geminiApiKey, prompt);
@@ -42,9 +41,7 @@ async function run(): Promise<void> {
       
       // 기존 리뷰 확인 및 생성
       const existingReview = await findExistingReview(
-        octokit,
-        prContext.repo,
-        prContext.pr.number
+        octokit, prContext.repo, prContext.pr.number,
       );
       
       if (!existingReview && parsedResponse.lineComments.length > 0) {
@@ -58,7 +55,7 @@ async function run(): Promise<void> {
       }
     } else {
       // 요약 모드 - 일반 코멘트 사용
-      const prompt = buildPrompt(prContext.pr.title, prContext.pr.body, diff, mode);
+      const prompt = buildSummarizePrompt(prContext.pr.title, prContext.pr.body, diff);
       const geminiResponse = await callGeminiApi(geminiApiKey, prompt);
       await postOrUpdateComment(octokit, prContext.repo, prContext.pr.number, geminiResponse);
     }
