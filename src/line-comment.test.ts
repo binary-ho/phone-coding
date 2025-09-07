@@ -75,7 +75,6 @@ describe('line-comment', () => {
       expect(mockOctokit.rest.pulls.createReview).toHaveBeenCalledWith({
         ...repo,
         pull_number,
-        body: 'Overall review summary',
         event: 'COMMENT',
         comments: lineComments,
       });
@@ -108,7 +107,6 @@ describe('line-comment', () => {
       expect(mockOctokit.rest.pulls.createReview).toHaveBeenCalledWith({
         ...repo,
         pull_number,
-        body: 'General feedback only',
         event: 'COMMENT',
         comments: [],
       });
@@ -135,7 +133,6 @@ describe('line-comment', () => {
       expect(mockOctokit.rest.pulls.createReview).toHaveBeenCalledWith({
         ...repo,
         pull_number,
-        body: 'Review with error',
         event: 'COMMENT',
         comments: lineComments,
       });
