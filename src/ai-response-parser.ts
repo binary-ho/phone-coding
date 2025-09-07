@@ -11,8 +11,8 @@ export const parseLineCommentReviewForLineComments = (
   diffLines: DiffLine[]
 ): ParsedAIResponse => {
   // AI 응답에서 라인별 코멘트 추출
-  // 예상 형식: "파일명:라인번호: 코멘트 내용"
-  const lineCommentRegex = /^(.+):(\d+):\s*(.+)$/gm;
+  // 예상 형식: "파일명:라인번호: 코멘트 내용" 또는 "- 파일명:라인번호: 코멘트 내용"
+  const lineCommentRegex = /^-?\s*(.+):(\d+):\s*(.+)$/gm;
   const lineComments: LineComment[] = [];
   let generalComment = aiResponse;
 
