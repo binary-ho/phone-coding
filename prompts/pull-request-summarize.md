@@ -1,7 +1,8 @@
-Please summarize the changes clearly and concisely.
-- PR 제목: {{prTitle}}
+Please summarize the changes clearly and concisely. in korean
 
-## 1. changes
+- PR title: {{prTitle}}
+
+## changes
 ```diff
 {{diff}}
 ```
