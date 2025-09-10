@@ -13,17 +13,63 @@ export const parseChecklistItemResponse = (
   item: ChecklistItem
 ): ChecklistItem => {
   try {
-    // JSON 블록 추출
-    const jsonMatch = aiResponse.match(/```json\s*([\s\S]*?)\s*```/);
-    if (!jsonMatch) {
+    let jsonString = '';
+    
+    // 방법 1: ```json``` 코드 블록에서 추출
+    const jsonBlockMatch = aiResponse.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonBlockMatch) {
+      jsonString = jsonBlockMatch[1].trim();
+    } else {
+      // 방법 2: 일반 코드 블록에서 추출
+      const codeBlockMatch = aiResponse.match(/```\s*([\s\S]*?)\s*```/);
+      if (codeBlockMatch) {
+        const blockContent = codeBlockMatch[1].trim();
+        // JSON 형태인지 확인
+        if (blockContent.startsWith('{') && blockContent.endsWith('}')) {
+          jsonString = blockContent;
+        }
+      }
+    }
+    
+    // 방법 3: 중괄호로 둘러싸인 JSON 직접 추출
+    if (!jsonString) {
+      const jsonDirectMatch = aiResponse.match(/\{[\s\S]*?\}/);
+      if (jsonDirectMatch) {
+        jsonString = jsonDirectMatch[0];
+      }
+    }
+    
+    // 방법 4: 여러 줄에 걸친 JSON 추출
+    if (!jsonString) {
+      const multilineJsonMatch = aiResponse.match(/\{[\s\S]*?"status"[\s\S]*?"evidence"[\s\S]*?\}/);
+      if (multilineJsonMatch) {
+        jsonString = multilineJsonMatch[0];
+      }
+    }
+
+    if (!jsonString) {
       throw new Error('No JSON block found in AI response');
     }
 
-    const result: ChecklistItemResult = JSON.parse(jsonMatch[1]);
+    // JSON 문자열 정리 - 개행 문자 등 처리
+    const cleanedJsonString = jsonString
+      .replace(/\n/g, '\\n')  // 개행 문자를 이스케이프
+      .replace(/\r/g, '\\r')  // 캐리지 리턴을 이스케이프
+      .replace(/\t/g, '\\t'); // 탭 문자를 이스케이프
+
+    const result: ChecklistItemResult = JSON.parse(cleanedJsonString);
     
     // 결과 검증
-    if (!['completed', 'failed'].includes(result.status)) {
-      throw new Error(`Invalid status: ${result.status}`);
+    if (!result.status || !['completed', 'failed'].includes(result.status)) {
+      throw new Error(`Invalid or missing status: ${result.status}`);
+    }
+
+    // 필수 필드 검증
+    if (!result.evidence) {
+      result.evidence = '검증 근거가 제공되지 않았습니다.';
+    }
+    if (!result.reasoning) {
+      result.reasoning = '상세한 판단 근거가 제공되지 않았습니다.';
     }
 
     // ChecklistItem 업데이트
