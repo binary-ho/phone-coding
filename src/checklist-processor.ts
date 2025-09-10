@@ -97,7 +97,7 @@ export class ChecklistProcessor {
       const number = index + 1;
       const statusIcon = this.getStatusIcon(item.status);
       const priorityBadge = this.getPriorityBadge(item.priority);
-      const title = `**${number}. ${item.title}** ${statusIcon} ${priorityBadge}`;
+      const title = `**${number}. ${item.title}** ${statusIcon}`;
       
       if (item.status === ChecklistStatus.PENDING) {
         return title;
@@ -109,7 +109,7 @@ export class ChecklistProcessor {
       
       // completed, failed, uncertain 상태 - 깔끔한 형식으로 개선
       if (item.evidence) {
-        const evidenceSection = `<details>\n<summary>분석 결과</summary>\n\n**근거:** ${item.evidence}\n\n**상세 분석:**\n${item.reasoning}\n${this.formatCodeExamples(item.codeExamples)}\n</details>`;
+        const evidenceSection = `<details>\n<summary>${item.title}</summary>\n\n${priorityBadge}\n\n**근거:** ${item.evidence}\n\n**상세 분석:**\n${item.reasoning}\n${this.formatCodeExamples(item.codeExamples)}\n</details>`;
         return `${title}\n${evidenceSection}\n`;
       }
       
