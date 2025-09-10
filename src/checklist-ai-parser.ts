@@ -93,26 +93,30 @@ export const parseChecklistItemResponse = (
   }
 };
 
-// 단순한 텍스트 분석: "통과" 또는 "불통과" 문자열 매칭
+// 단순한 텍스트 분석: "통과", "불통과", "판단어려움" 문자열 매칭
 const parseTextResponse = (aiResponse: string, item: ChecklistItem): ChecklistItem => {
   core.info(`[DEBUG] Parsing simple text response for item ${item.id}`);
   
   const responseText = aiResponse.trim();
   
-  // 단순한 문자열 매칭
+  // 단순한 문자열 매칭 (3가지 상태)
   let status: ChecklistStatus;
+  let evidence: string;
+  
   if (responseText.includes('통과')) {
     status = ChecklistStatus.COMPLETED;
+    evidence = '체크리스트 항목을 만족합니다';
   } else if (responseText.includes('불통과')) {
     status = ChecklistStatus.FAILED;
+    evidence = '체크리스트 항목을 만족하지 않습니다';
+  } else if (responseText.includes('판단어려움')) {
+    status = ChecklistStatus.UNCERTAIN;
+    evidence = '주어진 변경사항만으로는 판단하기 어렵습니다';
   } else {
-    // "통과" 또는 "불통과"가 없는 경우 실패로 처리
-    status = ChecklistStatus.FAILED;
+    // 예상된 응답이 없는 경우 불확실로 처리
+    status = ChecklistStatus.UNCERTAIN;
+    evidence = '응답 형식을 인식할 수 없어 판단이 어렵습니다';
   }
-  
-  const evidence = status === ChecklistStatus.COMPLETED ? 
-    '체크리스트 항목을 만족합니다' : 
-    '체크리스트 항목을 만족하지 않습니다';
   
   const reasoning = `AI 응답: ${responseText}`;
   

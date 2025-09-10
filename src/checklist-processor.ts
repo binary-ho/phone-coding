@@ -59,12 +59,45 @@ export class ChecklistProcessor {
   }
 
   generateChecklistComment(items: ChecklistItem[]): string {
-    const header = '## 📋 체크리스트 검증 결과\n\n';
+    // 진행률 계산
+    const totalItems = items.length;
+    const completedItems = items.filter(item => 
+      item.status === ChecklistStatus.COMPLETED || 
+      item.status === ChecklistStatus.FAILED || 
+      item.status === ChecklistStatus.UNCERTAIN
+    ).length;
+    const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
     
+    // 상태별 개수 계산
+    const statusCounts = {
+      completed: items.filter(item => item.status === ChecklistStatus.COMPLETED).length,
+      failed: items.filter(item => item.status === ChecklistStatus.FAILED).length,
+      uncertain: items.filter(item => item.status === ChecklistStatus.UNCERTAIN).length,
+      processing: items.filter(item => item.status === ChecklistStatus.PROCESSING).length,
+      pending: items.filter(item => item.status === ChecklistStatus.PENDING).length
+    };
+    
+    // 진행률 바 생성
+    const progressBar = this.generateProgressBar(progressPercentage);
+    
+    // 헤더 및 요약 정보
+    const header = `## 📋 체크리스트 검증 결과\n\n`;
+    const progressSection = `### 📊 진행 현황\n${progressBar} **${progressPercentage}%** (${completedItems}/${totalItems})\n\n`;
+    
+    // 요약 테이블
+    const summaryTable = `| 상태 | 개수 | 비율 |\n|------|------|------|\n` +
+      `| ✅ 통과 | ${statusCounts.completed} | ${totalItems > 0 ? Math.round((statusCounts.completed / totalItems) * 100) : 0}% |\n` +
+      `| ❌ 불통과 | ${statusCounts.failed} | ${totalItems > 0 ? Math.round((statusCounts.failed / totalItems) * 100) : 0}% |\n` +
+      `| ❓ 판단어려움 | ${statusCounts.uncertain} | ${totalItems > 0 ? Math.round((statusCounts.uncertain / totalItems) * 100) : 0}% |\n` +
+      `| ⏳ 처리중/대기 | ${statusCounts.processing + statusCounts.pending} | ${totalItems > 0 ? Math.round(((statusCounts.processing + statusCounts.pending) / totalItems) * 100) : 0}% |\n\n`;
+    
+    // 개별 항목들
+    const itemsSection = `### 📝 상세 결과\n\n`;
     const itemsContent = items.map((item, index) => {
       const number = index + 1;
       const statusIcon = this.getStatusIcon(item.status);
-      const title = `**${number}. ${item.title}** ${statusIcon}`;
+      const priorityBadge = this.getPriorityBadge(item.priority);
+      const title = `**${number}. ${item.title}** ${statusIcon} ${priorityBadge}`;
       
       if (item.status === ChecklistStatus.PENDING) {
         return title;
@@ -74,7 +107,7 @@ export class ChecklistProcessor {
         return `${title}`;
       }
       
-      // completed 또는 failed 상태 - 깔끔한 형식으로 개선
+      // completed, failed, uncertain 상태 - 깔끔한 형식으로 개선
       if (item.evidence) {
         const evidenceSection = `<details>\n<summary>분석 결과</summary>\n\n**근거:** ${item.evidence}\n\n**상세 분석:**\n${item.reasoning}\n${this.formatCodeExamples(item.codeExamples)}\n</details>`;
         return `${title}\n${evidenceSection}\n`;
@@ -83,13 +116,14 @@ export class ChecklistProcessor {
       return title;
     }).join('\n');
     
-    return header + itemsContent;
+    return header + progressSection + summaryTable + itemsSection + itemsContent;
   }
 
   private getStatusIcon(status: ChecklistStatus): string {
     switch (status) {
       case ChecklistStatus.COMPLETED: return '✅';
       case ChecklistStatus.FAILED: return '❌';
+      case ChecklistStatus.UNCERTAIN: return '❓';
       case ChecklistStatus.PROCESSING: return '(⏳ 처리 중...)';
       case ChecklistStatus.PENDING: return '(⏳ 대기 중...)';
       default: return '❓';
@@ -104,6 +138,29 @@ export class ChecklistProcessor {
     return '\n\n**코드 예시:**\n' + codeExamples.map((example) =>
       `\`\`\`typescript\n${example.trim()}\n\`\`\``
     ).join('\n\n');
+  }
+
+  private generateProgressBar(percentage: number): string {
+    const totalBars = 20;
+    const filledBars = Math.round((percentage / 100) * totalBars);
+    const emptyBars = totalBars - filledBars;
+    
+    const filled = '█'.repeat(filledBars);
+    const empty = '░'.repeat(emptyBars);
+    
+    return `\`${filled}${empty}\``;
+  }
+
+  private getPriorityBadge(priority?: string): string {
+    if (!priority) return '';
+    
+    switch (priority.toLowerCase()) {
+      case 'critical': return '🔴 **CRITICAL**';
+      case 'high': return '🟠 **HIGH**';
+      case 'medium': return '🟡 **MEDIUM**';
+      case 'low': return '🟢 **LOW**';
+      default: return `🔵 **${priority.toUpperCase()}**`;
+    }
   }
 
   getItems(): ChecklistItem[] {

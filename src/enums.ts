@@ -45,7 +45,8 @@ export enum ChecklistStatus {
   PENDING = 'pending',
   PROCESSING = 'processing',
   COMPLETED = 'completed',
-  FAILED = 'failed'
+  FAILED = 'failed',
+  UNCERTAIN = 'uncertain'
 }
 
 /**
