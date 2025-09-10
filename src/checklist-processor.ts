@@ -64,7 +64,7 @@ export class ChecklistProcessor {
     const itemsContent = items.map((item, index) => {
       const number = index + 1;
       const statusIcon = this.getStatusIcon(item.status);
-      const title = `${number}. ${item.title} ${statusIcon}`;
+      const title = `**${number}. ${item.title}** ${statusIcon}`;
       
       if (item.status === ChecklistStatus.PENDING) {
         return title;
@@ -74,11 +74,13 @@ export class ChecklistProcessor {
         return `${title}`;
       }
       
-      // completed 또는 failed 상태
-      const evidenceSection = item.evidence ? 
-        `<details>\n    <summary>근거: ${item.evidence}</summary>\n    \n    ${item.reasoning}\n    ${this.formatCodeExamples(item.codeExamples)}\n</details>\n` : '';
+      // completed 또는 failed 상태 - 깔끔한 형식으로 개선
+      if (item.evidence) {
+        const evidenceSection = `<details>\n<summary>분석 결과</summary>\n\n**근거:** ${item.evidence}\n\n**상세 분석:**\n${item.reasoning}\n${this.formatCodeExamples(item.codeExamples)}\n</details>`;
+        return `${title}\n${evidenceSection}\n`;
+      }
       
-      return `${title}\n${evidenceSection}`;
+      return title;
     }).join('\n');
     
     return header + itemsContent;
@@ -99,9 +101,9 @@ export class ChecklistProcessor {
       return '';
     }
     
-    return codeExamples.map(example => 
-      `    \`\`\`typescript\n    ${example}\n    \`\`\``
-    ).join('\n    \n');
+    return '\n\n**코드 예시:**\n' + codeExamples.map((example) =>
+      `\`\`\`typescript\n${example.trim()}\n\`\`\``
+    ).join('\n\n');
   }
 
   getItems(): ChecklistItem[] {

@@ -93,46 +93,30 @@ export const parseChecklistItemResponse = (
   }
 };
 
-// Fallback 함수: JSON이 없을 때 텍스트 분석으로 결과 추출
+// 단순한 텍스트 분석: "통과" 또는 "불통과" 문자열 매칭
 const parseTextResponse = (aiResponse: string, item: ChecklistItem): ChecklistItem => {
-  core.info(`[DEBUG] Parsing text response for item ${item.id}`);
+  core.info(`[DEBUG] Parsing simple text response for item ${item.id}`);
   
-  const responseText = aiResponse.toLowerCase();
+  const responseText = aiResponse.trim();
   
-  // 긍정적 키워드 검색
-  const positiveKeywords = [
-    '통과', '성공', '완료', '충족', '만족', '적절', '올바른', '좋은', '우수한',
-    'pass', 'success', 'complete', 'good', 'excellent', 'proper', 'correct',
-    '✅', '성공적', '문제없', '괜찮', '적합'
-  ];
-  
-  // 부정적 키워드 검색
-  const negativeKeywords = [
-    '실패', '문제', '부족', '미흡', '개선', '수정', '오류', '에러', '취약',
-    'fail', 'error', 'issue', 'problem', 'improve', 'fix', 'wrong', 'bad',
-    '❌', '문제가', '부적절', '잘못', '누락'
-  ];
-  
-  const hasPositive = positiveKeywords.some(keyword => responseText.includes(keyword));
-  const hasNegative = negativeKeywords.some(keyword => responseText.includes(keyword));
-  
-  // 상태 결정 로직
+  // 단순한 문자열 매칭
   let status: ChecklistStatus;
-  if (hasPositive && !hasNegative) {
+  if (responseText.includes('통과')) {
     status = ChecklistStatus.COMPLETED;
-  } else if (hasNegative) {
+  } else if (responseText.includes('불통과')) {
     status = ChecklistStatus.FAILED;
   } else {
-    // 애매한 경우 응답 길이로 판단
-    status = aiResponse.length > 100 ? ChecklistStatus.FAILED : ChecklistStatus.COMPLETED;
+    // "통과" 또는 "불통과"가 없는 경우 실패로 처리
+    status = ChecklistStatus.FAILED;
   }
   
-  // 응답에서 의미있는 부분 추출
-  const sentences = aiResponse.split(/[.!?]\s+/).filter(s => s.trim().length > 10);
-  const evidence = sentences.length > 0 ? sentences[0].trim() : '텍스트 분석을 통한 자동 판단';
-  const reasoning = sentences.length > 1 ? sentences.slice(1, 3).join(' ') : '상세한 분석 결과가 제공되지 않았습니다.';
+  const evidence = status === ChecklistStatus.COMPLETED ? 
+    '체크리스트 항목을 만족합니다' : 
+    '체크리스트 항목을 만족하지 않습니다';
   
-  core.info(`[DEBUG] Text analysis result for ${item.id}: ${status}, evidence: ${evidence.substring(0, 50)}...`);
+  const reasoning = `AI 응답: ${responseText}`;
+  
+  core.info(`[DEBUG] Simple text analysis result for ${item.id}: ${status}`);
   
   return {
     ...item,
