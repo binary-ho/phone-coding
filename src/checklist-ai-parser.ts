@@ -51,12 +51,10 @@ export const parseChecklistItemResponse = (
       throw new Error('No JSON block found in AI response');
     }
 
-    // JSON 문자열 정리 - 개행 문자 등 처리
+    // Clean control characters that can break JSON parsing while preserving structure
     const cleanedJsonString = jsonString
-      .replace(/\n/g, '\\n')  // 개행 문자를 이스케이프
-      .replace(/\r/g, '\\r')  // 캐리지 리턴을 이스케이프
-      .replace(/\t/g, '\\t'); // 탭 문자를 이스케이프
-
+      .replace(/[\x00-\x1F\x7F]/g, ''); // Remove control characters but keep normal whitespace
+    
     const result: ChecklistItemResult = JSON.parse(cleanedJsonString);
     
     // 결과 검증

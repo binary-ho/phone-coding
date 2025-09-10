@@ -46,12 +46,13 @@ export class ChecklistProcessor {
       return processedItem;
     } catch (error) {
       core.error(`Failed to process checklist item ${item.id}: ${error.message}`);
+      const errorInfo = this.classifyError(error);
       return {
         ...item,
         status: ChecklistStatus.FAILED,
-        evidence: `처리 중 오류 발생: ${error.message}`,
+        evidence: errorInfo.userMessage,
         codeExamples: [],
-        reasoning: '시스템 오류로 인해 검증을 완료할 수 없습니다.'
+        reasoning: errorInfo.technicalDetails
       };
     }
   }
@@ -113,5 +114,66 @@ export class ChecklistProcessor {
     if (index !== -1) {
       this.config.checklist.items[index] = updatedItem;
     }
+  }
+
+  private classifyError(error: any): { userMessage: string; technicalDetails: string } {
+    const errorMessage = error?.message || '';
+    const errorString = JSON.stringify(error);
+    
+    // API 과부하 에러 (503, 429, overloaded)
+    if (errorString.includes('"code":503') || 
+        errorString.includes('"code":429') ||
+        errorMessage.includes('overloaded') ||
+        errorMessage.includes('unavailable')) {
+      return {
+        userMessage: 'AI 서비스가 일시적으로 과부하 상태입니다',
+        technicalDetails: '잠시 후 다시 시도해주세요. 현재 Google Gemini API 서버가 과부하 상태입니다. 보통 10-30분 후에 정상화됩니다.'
+      };
+    }
+    
+    // API 키 관련 에러
+    if (errorMessage.includes('API key') || 
+        errorMessage.includes('authentication') ||
+        errorString.includes('"code":401')) {
+      return {
+        userMessage: 'API 인증에 문제가 있습니다',
+        technicalDetails: 'Gemini API 키를 확인해주세요. API 키가 올바르지 않거나 만료되었을 수 있습니다.'
+      };
+    }
+    
+    // 네트워크 관련 에러
+    if (errorMessage.includes('network') || 
+        errorMessage.includes('timeout') ||
+        errorMessage.includes('ECONNRESET') ||
+        errorMessage.includes('ENOTFOUND')) {
+      return {
+        userMessage: '네트워크 연결에 문제가 있습니다',
+        technicalDetails: '인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.'
+      };
+    }
+    
+    // 할당량 초과 에러
+    if (errorMessage.includes('quota') || 
+        errorMessage.includes('limit') ||
+        errorString.includes('"code":429')) {
+      return {
+        userMessage: 'API 사용량 한도를 초과했습니다',
+        technicalDetails: 'Gemini API의 일일 또는 시간당 사용량 한도를 초과했습니다. 시간을 두고 다시 시도해주세요.'
+      };
+    }
+    
+    // JSON 파싱 에러
+    if (errorMessage.includes('JSON') || errorMessage.includes('parse')) {
+      return {
+        userMessage: 'AI 응답 처리 중 오류가 발생했습니다',
+        technicalDetails: 'AI가 예상과 다른 형식으로 응답했습니다. 다시 시도하면 정상 처리될 수 있습니다.'
+      };
+    }
+    
+    // 기타 일반적인 에러
+    return {
+      userMessage: '처리 중 예상치 못한 오류가 발생했습니다',
+      technicalDetails: `시스템 오류: ${errorMessage}. 문제가 지속되면 GitHub Issue로 신고해주세요.`
+    };
   }
 }
