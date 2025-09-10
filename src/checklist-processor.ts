@@ -38,6 +38,7 @@ export class ChecklistProcessor {
       // AI 호출
       const aiResponse = await callGeminiApi(context.geminiApiKey, prompt);
       core.info(`Received AI response for item ${item.id}`);
+      core.info(`[DEBUG] AI Response for ${item.id}: ${aiResponse}`);
       
       // 응답 파싱 및 결과 반환
       const processedItem = parseChecklistItemResponse(aiResponse, item);
