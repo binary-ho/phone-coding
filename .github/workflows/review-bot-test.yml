@@ -25,9 +25,10 @@ jobs:
       - name: Build Action
         run: npm run build
 
-      - name: Run PR Reviewer Action
+      - name: Run PR Reviewer Action with Checklist
         uses: ./
         with:
           gemini-api-key: ${{ secrets.GEMINI_API_KEY }}
           github-token: ${{ secrets.REMOTE_REPOSITORY_PERSIONAL_ACCESS_TOKEN }}
           mode: 'review'
+          checklist-path: '.github/checklist.yml'

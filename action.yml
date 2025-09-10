@@ -15,3 +15,7 @@ inputs:
     description: 'The mode of operation.'
     required: false
     default: 'review'
+  checklist-path:
+    description: 'Path to the checklist configuration file in the repository'
+    required: false
+    default: '.github/checklist.yml'

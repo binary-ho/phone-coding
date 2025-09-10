@@ -1,6 +1,7 @@
 import * as lineComment from './line-comment';
 import * as github from '@actions/github';
 import {LineComments} from "./line-comment";
+import { DiffSide } from './enums';
 
 // Mock the @actions/github module
 jest.mock('@actions/github');
@@ -42,13 +43,13 @@ describe('line-comment', () => {
           {
             path: 'src/example.ts',
             line: 10,
-            side: 'RIGHT',
+            side: DiffSide.RIGHT,
             body: 'This line needs improvement'
           },
           {
             path: 'src/utils.ts',
             line: 25,
-            side: 'RIGHT',
+            side: DiffSide.RIGHT,
             body: 'Consider refactoring this function'
           }
       ];
@@ -118,7 +119,7 @@ describe('line-comment', () => {
       const lineComments: LineComments = [{
           path: 'src/error.ts',
           line: 1,
-          side: 'RIGHT',
+          side: DiffSide.RIGHT,
           body: 'This will cause an error'
       }];
 
@@ -381,14 +382,14 @@ describe('line-comment', () => {
       const lineCommentExample: lineComment.LineComment = {
         path: 'src/test.ts',
         line: 42,
-        side: 'RIGHT',
+        side: DiffSide.RIGHT,
         body: 'Test comment'
       };
 
       // Assert
       expect(lineCommentExample.path).toBe('src/test.ts');
       expect(lineCommentExample.line).toBe(42);
-      expect(lineCommentExample.side).toBe('RIGHT');
+      expect(lineCommentExample.side).toBe(DiffSide.RIGHT);
       expect(lineCommentExample.body).toBe('Test comment');
     });
 
@@ -397,12 +398,12 @@ describe('line-comment', () => {
       const lineCommentExample: lineComment.LineComment = {
         path: 'src/test.ts',
         line: 42,
-        side: 'LEFT',
+        side: DiffSide.LEFT,
         body: 'Test comment for old version'
       };
 
       // Assert
-      expect(lineCommentExample.side).toBe('LEFT');
+      expect(lineCommentExample.side).toBe(DiffSide.LEFT);
     });
   });
 
@@ -415,13 +416,13 @@ describe('line-comment', () => {
           {
             path: 'src/test.ts',
             line: 10,
-            side: 'RIGHT',
+            side: DiffSide.RIGHT,
             body: 'First comment'
           },
           {
             path: 'src/utils.ts',
             line: 20,
-            side: 'LEFT',
+            side: DiffSide.LEFT,
             body: 'Second comment'
           }
         ]
@@ -431,7 +432,7 @@ describe('line-comment', () => {
       expect(reviewDataExample.body).toBe('Overall review summary');
       expect(reviewDataExample.comments).toHaveLength(2);
       expect(reviewDataExample.comments[0].path).toBe('src/test.ts');
-      expect(reviewDataExample.comments[1].side).toBe('LEFT');
+      expect(reviewDataExample.comments[1].side).toBe(DiffSide.LEFT);
     });
   });
 });
