@@ -18,10 +18,28 @@ const replaceTemplateVariables = (template: string, prTitle: string, prDescripti
 };
 
 const replaceTemplateVariablesWithDiffList = (template: string, prTitle: string, prDescription: string, diffList: string): string => {
+  const prDescriptionIndent = detectVariableIndent(template, 'prDescription');
+  const prTitleIndent = detectVariableIndent(template, 'prTitle');
+  
+  const indentedPrDescription = addIndentToLines(prDescription, prDescriptionIndent);
+  const indentedPrTitle = addIndentToLines(prTitle, prTitleIndent);
+  
   return template
-    .replace(/\{\{prTitle\}\}/g, prTitle)
-    .replace(/\{\{prDescription\}\}/g, prDescription)
+    .replace(/\{\{prTitle\}\}/g, indentedPrTitle)
+    .replace(/\{\{prDescription\}\}/g, indentedPrDescription)
     .replace(/\{\{diffList\}\}/g, diffList);
+};
+
+const detectVariableIndent = (template: string, variableName: string): string => {
+  const lines = template.split('\n');
+  const variableLine = lines.find(line => line.includes(`{{${variableName}}}`));
+  
+  if (!variableLine) {
+    return '';
+  }
+  
+  const match = variableLine.match(/^(\s*)/);
+  return match ? match[1] : '';
 };
 
 const parseDiffByFile = (diff: string, template: string): string => {
@@ -59,12 +77,10 @@ const detectDiffListIndent = (template: string): { codeTagIndent: string; conten
   const match = diffListLine.match(/^(\s*)/);
   const diffListIndent = match ? match[1] : '';
   
-  const codeTagIndent = diffListIndent.length >= 4 ?
-    diffListIndent.slice(0, -4) : '';
-    
+  // <code_diff> 태그는 {{diffList}}와 같은 레벨, 내용은 4 spaces 더 들여쓰기
   return {
-    codeTagIndent: codeTagIndent,
-    contentIndent: diffListIndent
+    codeTagIndent: diffListIndent,
+    contentIndent: diffListIndent + '    '
   };
 };
 
