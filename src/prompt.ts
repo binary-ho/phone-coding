@@ -10,27 +10,27 @@ const loadPromptTemplate = (templateName: string): string => {
   return fs.readFileSync(templatePath, 'utf-8');
 };
 
-const replaceTemplateVariables = (template: string, prTitle: string, prBody: string, diff: string): string => {
+const replaceTemplateVariables = (template: string, prTitle: string, prDescription: string, diff: string): string => {
   return template
     .replace(/\{\{prTitle\}\}/g, prTitle)
-    .replace(/\{\{prBody\}\}/g, prBody)
+    .replace(/\{\{prDescription\}\}/g, prDescription)
     .replace(/\{\{diff\}\}/g, diff);
 };
 
 export const buildSummarizePrompt = (
   prTitle: string,
-  prBody: string,
+  prDescription: string,
   diff: string,
 ): string => {
   const template = loadPromptTemplate(PULL_REQUEST_SUMMARIZE_PROMPT);
-  return replaceTemplateVariables(template, prTitle, prBody, diff);
+  return replaceTemplateVariables(template, prTitle, prDescription, diff);
 };
 
 export const buildPullRequestLineCommentsPrompt = (
   prTitle: string,
-  prBody: string,
+  prDescription: string,
   diff: string,
 ): string => {
   const template = loadPromptTemplate(LINE_COMMENT_PROMPT);
-  return replaceTemplateVariables(template, prTitle, prBody, diff);
+  return replaceTemplateVariables(template, prTitle, prDescription, diff);
 };
