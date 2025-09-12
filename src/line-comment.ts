@@ -52,7 +52,7 @@ export const formatCommentWithImportance = (comment: LineComment): string => {
   }
   
   const meta = IMPORTANCE_META[comment.importance];
-  return `- 중요도: ${meta.emoji} ${meta.label}\n\n-----------------------\n\n${comment.body}`;
+  return `${meta.emoji} ${meta.label}\n\n${comment.body}`;
 };
 
 interface GitHubLineComment {
