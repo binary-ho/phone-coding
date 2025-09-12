@@ -28,16 +28,32 @@ const parseDiffByFile = (diff: string): string => {
   // diff를 파일별로 분리하고 각각을 <code_diff> 태그로 감싸기
   const fileDiffs = diff.split('diff --git').filter(section => section.trim());
   
-  if (fileDiffs.length === 0) {
-    return `<code_diff>\n${diff}\n</code_diff>`;
+  if (isFirstItem(fileDiffs.length)) {
+    return formatCodeDiffWithIndent(diff);
   }
   
   return fileDiffs.map(fileDiff => {
     // 첫 번째 파일이 아닌 경우 'diff --git' 접두사 복원
     const fullDiff = fileDiff.startsWith(' ') ? `diff --git${fileDiff}` : fileDiff;
-    return `<code_diff>\n${fullDiff.trim()}\n</code_diff>`;
+    return formatCodeDiffWithIndent(fullDiff.trim());
   }).join('\n');
 };
+
+const isFirstItem = (index: number): boolean => index === 0;
+
+const formatCodeDiffWithIndent = (diffContent: string): string => {
+  const baseIndent = '            '; // 원본 <code_diff> 태그의 들여쓰기에 맞춤 (12 spaces)
+  const indentedContent = addIndentToLines(diffContent, baseIndent);
+  return `        <code_diff>\n${indentedContent}\n        </code_diff>`;
+};
+
+// diff 내용의 각 줄에 들여쓰기 추가
+const addIndentToLines = (text: string, indent: string): string => {
+  return text
+    .split('\n')
+    .map(line => line.length > 0 ? indent + line : line)
+    .join('\n');
+}
 
 export const buildSummarizePrompt = (
   prTitle: string,
