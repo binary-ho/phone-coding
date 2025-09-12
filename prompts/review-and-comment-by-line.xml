@@ -32,7 +32,7 @@
             3. `MEDIUM_PRIORITY`: Can fix before or after merging (e.g. naming convention, OOP principle, code structure)
             4. `LOW_PRIORITY`: Optional improvement (e.g. documentation, code comments)
         3. Do not force to find all levels.
-        4. do not comment chore issues
+        4. Do not Find Praise Point (Good Point).
         5. follow strictly the Line Comments Format -> `output_format` tag This is more important than anything else in the world.
 
         <output_format>
