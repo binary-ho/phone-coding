@@ -2,8 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // prompt 파일명
-const PULL_REQUEST_SUMMARIZE_PROMPT = 'pull-request-summarize.md';
-const LINE_COMMENT_PROMPT = 'review-and-comment-by-line.md';
+const PULL_REQUEST_SUMMARIZE_PROMPT = 'pull-request-summarize.xml';
+const LINE_COMMENT_PROMPT = 'review-and-comment-by-line.xml';
 
 const loadPromptTemplate = (templateName: string): string => {
   const templatePath = path.join(__dirname, '..', 'prompts', templateName);
