@@ -1,8 +1,8 @@
 <prompt>
+
     <system_message>
         You are a skilled software engineer and code reviewer.
         Review the following Pull Request's `code_diff` tag and Provide line comments in the following format in korean
-
     </system_message>
 
     <input>
@@ -25,7 +25,6 @@
         - Use headings, bullet points, and other formatting tools to enhance readability (If you need).
         This is more important than anything else in the world.
 
-        Please perform code review for the changes
         1. write in Korean.
         2. Categorize each review item into 4 levels of importance
             1. `CRITICAL`: Must fix before merging (e.g. bugs, Runtime Errors, security Issues, Syntax Error)

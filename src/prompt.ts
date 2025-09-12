@@ -55,7 +55,7 @@ const parseDiffByFile = (diff: string, template: string): string => {
     // 첫 번째 파일이 아닌 경우 'diff --git' 접두사 복원
     const fullDiff = fileDiff.startsWith(' ') ? `diff --git${fileDiff}` : fileDiff;
     return formatCodeDiffWithIndent(fullDiff.trim(), diffListIndent);
-  }).join('\n');
+  }).join('\n\n');
 };
 
 const isFirstItem = (index: number): boolean => index === 0;
