@@ -9,6 +9,35 @@ export enum ImportanceLevel {
   LOW_PRIORITY = 'LOW_PRIORITY',
 }
 
+interface ImportanceMeta {
+  emoji: string;
+  label: string;
+  description: string;
+}
+
+export const IMPORTANCE_META: Record<ImportanceLevel, ImportanceMeta> = {
+  [ImportanceLevel.CRITICAL]: {
+    emoji: '🔴',
+    label: 'CRITICAL',
+    description: 'Must fix before merging (e.g. bugs, Runtime Errors, security Issues, Syntax Error)'
+  },
+  [ImportanceLevel.HIGH_PRIORITY]: {
+    emoji: '🟠',
+    label: 'HIGH_PRIORITY',
+    description: 'Should fix before merging (e.g. coding convention with codebase, potential bugs)'
+  },
+  [ImportanceLevel.MEDIUM_PRIORITY]: {
+    emoji: '🟡',
+    label: 'MEDIUM_PRIORITY',
+    description: 'Can fix before or after merging (e.g. naming convention, OOP principle, code structure)'
+  },
+  [ImportanceLevel.LOW_PRIORITY]: {
+    emoji: '🟢',
+    label: 'LOW_PRIORITY',
+    description: 'Optional improvement (e.g. documentation, code comments)'
+  }
+};
+
 export interface LineComment {
   path: string;
   line: number;
@@ -16,6 +45,15 @@ export interface LineComment {
   body: string;
   importance?: ImportanceLevel;
 }
+
+export const formatCommentWithImportance = (comment: LineComment): string => {
+  if (!comment.importance) {
+    return comment.body;
+  }
+  
+  const meta = IMPORTANCE_META[comment.importance];
+  return `- 중요도: ${meta.emoji} ${meta.label}\n\n-----------------------\n\n${comment.body}`;
+};
 
 export interface ReviewData {
   body: string;
@@ -28,11 +66,17 @@ export const createLineComments = async (
   pull_number: number,
   lineComments: LineComments,
 ) => {
+  // 중요도가 포함된 형식으로 댓글 포맷팅
+  const formattedComments = lineComments.map(comment => ({
+    ...comment,
+    body: formatCommentWithImportance(comment)
+  }));
+
   return await octokit.rest.pulls.createReview({
     ...repo,
     pull_number,
     event: 'COMMENT',
-    comments: lineComments,
+    comments: formattedComments,
   });
 };
 

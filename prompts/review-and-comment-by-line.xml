@@ -28,7 +28,7 @@
         1. write in Korean.
         2. Categorize each review item into 4 levels of importance
             1. `CRITICAL`: Must fix before merging (e.g. bugs, Runtime Errors, security Issues, Syntax Error)
-            2. `HIGH_PRIORITY`: Should fix before merging (e.g. coding convention with codebase, potential bugs,
+            2. `HIGH_PRIORITY`: Should fix before merging (e.g. coding convention with codebase, potential bugs)
             3. `MEDIUM_PRIORITY`: Can fix before or after merging (e.g. naming convention, OOP principle, code structure)
             4. `LOW_PRIORITY`: Optional improvement (e.g. documentation, code comments)
         3. Do not force to find all levels.
