@@ -29,5 +29,11 @@ const validateContentNotEmpty = (responseText: string) => {
 }
 
 const removeCodeBlocks = (text: string): string => {
-  return text.replace(/```[\w]*\n?([\s\S]*?)```/g, '$1').trim();
+  // 백틱이 있는 코드 블록 제거 (```json ... ```)
+  let cleaned = text.replace(/```[\w]*\n?([\s\S]*?)```/g, '$1');
+  
+  // 백틱 없이 언어만 있는 경우 제거 (json\n[...] 형태)
+  cleaned = cleaned.replace(/^(json|javascript|typescript|ts|js)\s*\n/, '');
+  
+  return cleaned.trim();
 };

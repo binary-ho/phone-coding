@@ -5,19 +5,17 @@
 
     </system_message>
 
-    <context>
+    <input>
         <pr_title>
             {{prTitle}}
         </pr_title>
-
         <pr_description>
             {{prDescription}}
         </pr_description>
-
         <code_diff_list>
             {{diffList}}
         </code_diff_list>
-    </context>
+    </input>
 
     <output>
         Write the summary in Markdown format
