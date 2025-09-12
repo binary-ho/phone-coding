@@ -93,34 +93,60 @@ export const parseChecklistItemResponse = (
   }
 };
 
-// 단순한 텍스트 분석: "통과", "불통과", "판단어려움" 문자열 매칭
+// 텍스트 분석: 다양한 키워드 패턴 매칭
 const parseTextResponse = (aiResponse: string, item: ChecklistItem): ChecklistItem => {
-  core.info(`[DEBUG] Parsing simple text response for item ${item.id}`);
+  core.info(`[DEBUG] Parsing text response for item ${item.id}`);
   
-  const responseText = aiResponse.trim();
+  const responseText = aiResponse.trim().toLowerCase();
   
-  // 단순한 문자열 매칭 (3가지 상태)
   let status: ChecklistStatus;
   let evidence: string;
   
-  if (responseText.includes('통과')) {
-    status = ChecklistStatus.COMPLETED;
-    evidence = '체크리스트 항목을 만족합니다';
-  } else if (responseText.includes('불통과')) {
+  // 실패/불통과 키워드 먼저 확인 (더 구체적인 패턴)
+  if (responseText.includes('불통과') || 
+      responseText.includes('실패') ||
+      responseText.includes('불합격') ||
+      responseText.includes('개선 필요') ||
+      responseText.includes('만족하지 않') ||
+      responseText.includes('부족') ||
+      responseText.includes('문제') ||
+      /개선.*필요/.test(responseText) ||
+      /만족.*않/.test(responseText)) {
     status = ChecklistStatus.FAILED;
     evidence = '체크리스트 항목을 만족하지 않습니다';
-  } else if (responseText.includes('판단어려움')) {
+  } 
+  // 성공/통과 키워드 확인
+  else if (responseText.includes('통과') || 
+           responseText.includes('성공') ||
+           responseText.includes('합격') ||
+           responseText.includes('만족') ||
+           responseText.includes('양호') ||
+           responseText.includes('적절') ||
+           /pr.*합격/.test(responseText) ||
+           /검토.*결과.*합격/.test(responseText)) {
+    status = ChecklistStatus.COMPLETED;
+    evidence = '체크리스트 항목을 만족합니다';
+  }
+  // 불확실/판단어려움 키워드 확인
+  else if (responseText.includes('판단어려움') ||
+           responseText.includes('불확실') ||
+           responseText.includes('명확하지 않') ||
+           responseText.includes('판단하기 어려') ||
+           responseText.includes('정보 부족') ||
+           /판단.*어려/.test(responseText) ||
+           /확인.*어려/.test(responseText)) {
     status = ChecklistStatus.UNCERTAIN;
     evidence = '주어진 변경사항만으로는 판단하기 어렵습니다';
-  } else {
+  } 
+  else {
     // 예상된 응답이 없는 경우 불확실로 처리
     status = ChecklistStatus.UNCERTAIN;
     evidence = '응답 형식을 인식할 수 없어 판단이 어렵습니다';
   }
   
-  const reasoning = `AI 응답: ${responseText}`;
+  const reasoning = `AI 응답: ${aiResponse}`;
   
-  core.info(`[DEBUG] Simple text analysis result for ${item.id}: ${status}`);
+  core.info(`[DEBUG] Text analysis result for ${item.id}: ${status}`);
   
   return {
     ...item,
