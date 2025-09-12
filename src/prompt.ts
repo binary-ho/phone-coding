@@ -27,7 +27,7 @@ const replaceTemplateVariablesWithDiffList = (template: string, prTitle: string,
   return template
     .replace(/\{\{prTitle\}\}/g, indentedPrTitle)
     .replace(/\{\{prDescription\}\}/g, indentedPrDescription)
-    .replace(/\{\{diffList\}\}/g, diffList);
+    .replace(/(\s*)\{\{diffList\}\}/g, diffList); // 앞의 공백을 제거하고 diffList로 대체
 };
 
 const detectVariableIndent = (template: string, variableName: string): string => {
