@@ -34,6 +34,50 @@ const removeCodeBlocks = (text: string): string => {
   
   // 백틱 없이 언어만 있는 경우 제거 (json\n[...] 형태)
   cleaned = cleaned.replace(/^(json|javascript|typescript|ts|js)\s*\n/, '');
+  return extractCompleteJson(cleaned).trim();
+};
+
+const extractCompleteJson = (text: string): string => {
+  const trimmed = text.trim();
+  if (!trimmed.startsWith('{')) {
+    return trimmed;
+  }
   
-  return cleaned.trim();
+  let braceCount = 0;
+  let inString = false;
+  let escaped = false;
+  
+  for (let i = 0; i < trimmed.length; i++) {
+    const char = trimmed[i];
+    
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    
+    if (char === '\\') {
+      escaped = true;
+      continue;
+    }
+    
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+    
+    if (inString) {
+      continue;
+    }
+    
+    if (char === '{') {
+      braceCount++;
+    } else if (char === '}') {
+      braceCount--;
+      if (braceCount === 0) {
+        return trimmed.substring(0, i + 1);
+      }
+    }
+  }
+  
+  return trimmed;
 };

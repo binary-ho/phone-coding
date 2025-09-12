@@ -52,11 +52,16 @@ const parseLineCommentsLegacy = (matches: RegExpExecArray[], diffLines: DiffLine
     const lineNumber = parseInt(lineNumberString);
 
     if (isReviewLineInDiff(diffLines, path, lineNumber)) {
-      lineComments.push({ path, line: lineNumber, side: 'RIGHT', body: comment.trim() });
+      const cleanedComment = removePriorityTag(comment);
+      lineComments.push({ path, line: lineNumber, side: 'RIGHT', body: cleanedComment });
     }
   }
 
   return lineComments as LineComments;
+}
+
+const removePriorityTag = (comment: string): string => {
+  return comment.trim().replace(/\s*\([A-Z_]+PRIORITY\)\s*$/, '');
 }
 
 const isReviewLineInDiff = (diffLines: DiffLine[], path: string, lineNumber: number): boolean => {
