@@ -67,6 +67,34 @@ For generating general PR summaries instead of line-specific reviews:
           mode: 'summarize' # Provides general PR summary
 ```
 
+### 체크리스트 기능 사용법
+
+#### 1. 체크리스트 파일 생성
+리포지토리에 `.github/checklist.yml` 파일을 생성하세요:
+
+```yaml
+checklist:
+  name: "우리 팀의 코드 품질 체크리스트"
+  items:
+    - id: "null-safety"
+      title: "nullpoint exception이 확실하게 없습니다"
+      description: "모든 객체 접근에서 null 체크가 수행되는지 확인"
+      priority: "high"
+```
+
+#### 2. GitHub Action 설정
+```yaml
+- name: AI Code Reviewer
+  uses: binary-ho/ai-code-reviewer@v1
+  with:
+    gemini-api-key: ${{ secrets.GEMINI_API_KEY }}
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    checklist-path: '.github/checklist.yml'  # 선택적
+```
+
+#### 3. 결과 확인
+PR에 체크리스트 검증 결과가 코멘트로 추가됩니다.
+
 ## Inputs
 
 | Input            | Description                  | Required | Default            |
@@ -74,6 +102,7 @@ For generating general PR summaries instead of line-specific reviews:
 | `gemini-api-key` | The Gemini API key.          | `true`   | -                  |
 | `github-token`   | The GitHub token.            | `true`   | `${{ github.token }}` |
 | `mode`           | The mode of operation. Can be `review` (line-specific comments) or `summarize` (general comments). | `false`  | `review`           |
+| `checklist-path` | Path to the checklist configuration file in the repository | `false`  | `.github/checklist.yml` |
 
 ## Comment Types
 

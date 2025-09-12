@@ -1,0 +1,22 @@
+checklist:
+  name: "AI Code Reviewer 품질 체크리스트"
+  items:
+    - id: "no-runtime-error"
+      title: "런타임 에러가 없습니다."
+      description: "런타임 에러 발생 여부를 확인"
+      priority: "critical"  # 우선순위 설정 (critical, high, medium, low)
+
+    - id: "readability"
+      title: "코드가 가독성이 좋습니다."
+      description: "코드가 명확하고 이해하기 쉬운지 확인"
+      priority: "medium"
+      
+    - id: "type-safety"
+      title: "TypeScript 타입 안전성이 보장됩니다"
+      description: "any 타입 사용을 피하고 적절한 타입 정의가 되어있는지 확인"
+      priority: "high"
+
+    - id: "변경_용이성이_높다"
+      title: "변경 용이성이 높습니다."
+      description: "코드가 결합도가 낮고, 응집도가 높아 변경이 용이한지 확인"
+      priority: "high"
