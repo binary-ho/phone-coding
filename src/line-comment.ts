@@ -55,6 +55,22 @@ export const formatCommentWithImportance = (comment: LineComment): string => {
   return `- 중요도: ${meta.emoji} ${meta.label}\n\n-----------------------\n\n${comment.body}`;
 };
 
+interface GitHubLineComment {
+  path: string;
+  line: number;
+  side: 'LEFT' | 'RIGHT';
+  body: string;
+}
+
+export const convertToGitHubFormat = (comments: LineComments): GitHubLineComment[] => {
+  return comments.map(comment => ({
+    path: comment.path,
+    line: comment.line,
+    side: comment.side,
+    body: formatCommentWithImportance(comment)
+  }));
+};
+
 export interface ReviewData {
   body: string;
   comments: LineComment[];
@@ -66,17 +82,13 @@ export const createLineComments = async (
   pull_number: number,
   lineComments: LineComments,
 ) => {
-  // 중요도가 포함된 형식으로 댓글 포맷팅
-  const formattedComments = lineComments.map(comment => ({
-    ...comment,
-    body: formatCommentWithImportance(comment)
-  }));
+  const gitHubComments = convertToGitHubFormat(lineComments);
 
   return await octokit.rest.pulls.createReview({
     ...repo,
     pull_number,
     event: 'COMMENT',
-    comments: formattedComments,
+    comments: gitHubComments,
   });
 };
 
