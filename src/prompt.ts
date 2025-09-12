@@ -57,12 +57,14 @@ const detectDiffListIndent = (template: string): { codeTagIndent: string; conten
   
   // {{diffList}} 앞의 공백 개수 계산
   const match = diffListLine.match(/^(\s*)/);
-  const baseIndent = match ? match[1] : '';
+  const diffListIndent = match ? match[1] : '';
   
-  // <code_diff> 태그는 base와 동일, 내용은 base + 4 spaces
+  const codeTagIndent = diffListIndent.length >= 4 ?
+    diffListIndent.slice(0, -4) : '';
+    
   return {
-    codeTagIndent: baseIndent,
-    contentIndent: baseIndent + '    '
+    codeTagIndent: codeTagIndent,
+    contentIndent: diffListIndent
   };
 };
 
