@@ -1,18 +1,50 @@
-import {LineComment, LineComments} from './line-comment';
+import {LineComment, LineComments, ImportanceLevel} from './line-comment';
 import { DiffLine } from './diff-parser';
 
-// "파일명:라인번호: 코멘트 내용" 또는 "- 파일명:라인번호: 코멘트 내용"
-const LINE_COMMENT_REGEX = /^-?\s*(.+):(\d+):\s*(.+)$/gm;
+interface AILineComment {
+  filename: string;
+  line_number: number;
+  comment: string;
+  importance: ImportanceLevel;
+}
+
+interface AIResponse {
+  line_comments: AILineComment[];
+}
 
 export const parseLineCommentReviewForLineComments = (
   aiResponse: string,
   diffLines: DiffLine[]
 ): LineComments => {
-  const matches: RegExpExecArray[] = [...aiResponse.matchAll(LINE_COMMENT_REGEX)];
-  return parseLineComments(matches, diffLines);
+  try {
+    const parsedResponse: AIResponse = JSON.parse(aiResponse);
+    return parseLineCommentsFromJSON(parsedResponse, diffLines);
+  } catch (error) {
+    console.error('Failed to parse AI response as JSON:', error);
+    // Fallback to legacy regex parsing
+    const matches: RegExpExecArray[] = [...aiResponse.matchAll(LINE_COMMENT_REGEX)];
+    return parseLineCommentsLegacy(matches, diffLines);
+  }
 };
 
-const parseLineComments = (matches: RegExpExecArray[], diffLines: DiffLine[]): LineComments => {
+const parseLineCommentsFromJSON = (aiResponse: AIResponse, diffLines: DiffLine[]): LineComments => {
+  return aiResponse.line_comments
+    .filter(comment =>  comment.importance !== ImportanceLevel.LOW_PRIORITY)
+    .filter(comment => isReviewLineInDiff(diffLines, comment.filename, comment.line_number))
+    .map(comment => {
+      return {
+        path: comment.filename,
+        line: comment.line_number,
+        side: 'RIGHT',
+        body: comment.comment.trim(),
+        importance: comment.importance
+      } as LineComment;
+    });
+};
+
+const LINE_COMMENT_REGEX = /^-?\s*(.+):(\d+):\s*(.+)$/gm;
+
+const parseLineCommentsLegacy = (matches: RegExpExecArray[], diffLines: DiffLine[]): LineComments => {
   const lineComments: LineComment[] = [];
 
   for (const matchLine of matches) {

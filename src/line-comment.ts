@@ -2,11 +2,19 @@ import * as github from '@actions/github';
 
 export type LineComments = LineComment[];
 
+export enum ImportanceLevel {
+  CRITICAL = 'CRITICAL',
+  HIGH_PRIORITY = 'HIGH_PRIORITY',
+  MEDIUM_PRIORITY = 'MEDIUM_PRIORITY',
+  LOW_PRIORITY = 'LOW_PRIORITY',
+}
+
 export interface LineComment {
   path: string;
   line: number;
   side: 'LEFT' | 'RIGHT';
   body: string;
+  importance?: ImportanceLevel;
 }
 
 export interface ReviewData {
