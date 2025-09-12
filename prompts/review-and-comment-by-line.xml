@@ -14,9 +14,9 @@
             {{prDescription}}
         </pr_description>
 
-        <code_diff>
-            {{diff}}
-        </code_diff>
+        <code_diff_list>
+            {{diffList}}
+        </code_diff_list>
     </context>
 
     <output>
