@@ -6,7 +6,7 @@ import { callGeminiApi } from './gemini';
 import { postOrUpdateComment } from './comment';
 import { parseDiffLines } from './diff-parser';
 import { parseLineCommentReviewForLineComments } from './ai-response-parser';
-import {createLineComments, findExistingReview, LineComments} from './line-comment';
+import {createLineComments, isNoSummaryReviewContent, LineComments} from './line-comment';
 import {GitHub} from "@actions/github/lib/utils";
 import {PullRequestContext} from "./pull-request-context";
 
@@ -44,12 +44,12 @@ async function run(): Promise<void> {
 
 const summaryPullRequestAndComment = async (
     prContext: PullRequestContext, diff: string, octokit: Octokit, geminiApiKey: string) => {
-  const prompt = buildSummarizePrompt(prContext.pr.title, prContext.pr.body, diff);
-  const existingReview = await findExistingReview(
+  const isNoSummaryReview = await isNoSummaryReviewContent(
       octokit, prContext.repo, prContext.pr.number,
   );
 
-  if (!existingReview) {
+  if (isNoSummaryReview) {
+    const prompt = buildSummarizePrompt(prContext.pr.title, prContext.pr.body, diff);
     const geminiResponse = await callGeminiApi(geminiApiKey, prompt);
     await postOrUpdateComment(octokit, prContext.repo, prContext.pr.number, geminiResponse);
   }

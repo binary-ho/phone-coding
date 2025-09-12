@@ -4,18 +4,14 @@ export const callGeminiApi = async (apiKey: string, prompt: string): Promise<str
   try {
     const genAI = new GoogleGenAI({ apiKey });
 
-    const result = await genAI.models.generateContent({
+    const generateContentResponse = await genAI.models.generateContent({
         model: 'gemini-2.0-flash',
         contents: prompt,
     });
 
-    const text = result.text;
-
-    if (text === undefined) {
-        throw new Error("No text response from Gemini API");
-    }
-
-    return text;
+    const responseText = generateContentResponse.text;
+    validateContentNotEmpty(responseText);
+    return removeCodeBlocks(responseText);
   } catch (error) {
     if (error instanceof Error) {
       console.error('Error calling Gemini API:', error.message);
@@ -24,4 +20,14 @@ export const callGeminiApi = async (apiKey: string, prompt: string): Promise<str
     }
     throw error;
   }
+};
+
+const validateContentNotEmpty = (responseText: string) => {
+  if (responseText === undefined || responseText === null || responseText.trim() === '') {
+    throw new Error("No text response from Gemini API");
+  }
+}
+
+const removeCodeBlocks = (text: string): string => {
+  return text.replace(/```[\w]*\n?([\s\S]*?)```/g, '$1').trim();
 };

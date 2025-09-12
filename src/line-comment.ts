@@ -46,3 +46,12 @@ export const findExistingReview = async (
               review.body?.includes('<!-- gemini-line-reviewer -->')
   );
 };
+
+export const isNoSummaryReviewContent = async (
+    octokit: ReturnType<typeof github.getOctokit>,
+    repo: { owner: string; repo: string },
+    pull_number: number
+) => {
+  const isExist = !!(await findExistingReview(octokit, repo, pull_number));
+  return !isExist;
+}
