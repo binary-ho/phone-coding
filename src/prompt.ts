@@ -24,27 +24,51 @@ const replaceTemplateVariablesWithDiffList = (template: string, prTitle: string,
     .replace(/\{\{diffList\}\}/g, diffList);
 };
 
-const parseDiffByFile = (diff: string): string => {
+const parseDiffByFile = (diff: string, template: string): string => {
   // diff를 파일별로 분리하고 각각을 <code_diff> 태그로 감싸기
   const fileDiffs = diff.split('diff --git').filter(section => section.trim());
+  const diffListIndent = detectDiffListIndent(template);
   
   if (isFirstItem(fileDiffs.length)) {
-    return formatCodeDiffWithIndent(diff);
+    return formatCodeDiffWithIndent(diff, diffListIndent);
   }
   
   return fileDiffs.map(fileDiff => {
     // 첫 번째 파일이 아닌 경우 'diff --git' 접두사 복원
     const fullDiff = fileDiff.startsWith(' ') ? `diff --git${fileDiff}` : fileDiff;
-    return formatCodeDiffWithIndent(fullDiff.trim());
+    return formatCodeDiffWithIndent(fullDiff.trim(), diffListIndent);
   }).join('\n');
 };
 
 const isFirstItem = (index: number): boolean => index === 0;
 
-const formatCodeDiffWithIndent = (diffContent: string): string => {
-  const baseIndent = '            '; // 원본 <code_diff> 태그의 들여쓰기에 맞춤 (12 spaces)
-  const indentedContent = addIndentToLines(diffContent, baseIndent);
-  return `        <code_diff>\n${indentedContent}\n        </code_diff>`;
+const detectDiffListIndent = (template: string): { codeTagIndent: string; contentIndent: string } => {
+  // {{diffList}} 변수가 있는 줄의 들여쓰기를 찾기
+  const lines = template.split('\n');
+  const diffListLine = lines.find(line => line.includes('{{diffList}}'));
+  
+  if (!diffListLine) {
+    // 기본값 반환
+    return { 
+      codeTagIndent: '        ', // 8 spaces
+      contentIndent: '            ' // 12 spaces
+    };
+  }
+  
+  // {{diffList}} 앞의 공백 개수 계산
+  const match = diffListLine.match(/^(\s*)/);
+  const baseIndent = match ? match[1] : '';
+  
+  // <code_diff> 태그는 base와 동일, 내용은 base + 4 spaces
+  return {
+    codeTagIndent: baseIndent,
+    contentIndent: baseIndent + '    '
+  };
+};
+
+const formatCodeDiffWithIndent = (diffContent: string, indentConfig: { codeTagIndent: string; contentIndent: string }): string => {
+  const indentedContent = addIndentToLines(diffContent, indentConfig.contentIndent);
+  return `${indentConfig.codeTagIndent}<code_diff>\n${indentedContent}\n${indentConfig.codeTagIndent}</code_diff>`;
 };
 
 // diff 내용의 각 줄에 들여쓰기 추가
@@ -70,6 +94,6 @@ export const buildPullRequestLineCommentsPrompt = (
   diff: string,
 ): string => {
   const template = loadPromptTemplate(LINE_COMMENT_PROMPT);
-  const diffList = parseDiffByFile(diff);
+  const diffList = parseDiffByFile(diff, template);
   return replaceTemplateVariablesWithDiffList(template, prTitle, prDescription, diffList);
 };
