@@ -9,12 +9,15 @@
         <pr_title>
             {{prTitle}}
         </pr_title>
+
         <pr_description>
             {{prDescription}}
         </pr_description>
+
         <code_diff_list>
             {{diffList}}
         </code_diff_list>
+
     </input>
 
     <output>

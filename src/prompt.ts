@@ -86,7 +86,7 @@ const detectDiffListIndent = (template: string): { codeTagIndent: string; conten
 
 const formatCodeDiffWithIndent = (diffContent: string, indentConfig: { codeTagIndent: string; contentIndent: string }): string => {
   const indentedContent = addIndentToLines(diffContent, indentConfig.contentIndent);
-  return `${indentConfig.codeTagIndent}<code_diff>\n${indentedContent}\n${indentConfig.codeTagIndent}</code_diff>`;
+  return `\n${indentConfig.codeTagIndent}<code_diff>\n${indentedContent}\n${indentConfig.codeTagIndent}</code_diff>`;
 };
 
 // diff 내용의 각 줄에 들여쓰기 추가
