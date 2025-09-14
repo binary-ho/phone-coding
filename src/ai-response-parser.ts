@@ -69,7 +69,8 @@ const removePriorityTag = (comment: string): string => {
     // 맨 앞 이모지 + PRIORITY 형태 (🟡 MEDIUM_PRIORITY)
     .replace(/^[\u{1F300}-\u{1F9FF}]?\s*[A-Z_]+PRIORITY\s*/u, '')
     // 맨 앞 파일명:라인번호: 형태 (이미 regex로 분리되었지만 혹시 모를 케이스)
-    .replace(/^[^:]+:\d+:\s*/, '');
+    .replace(/^[^:]+:\d+:\s*/, '')
+    .trim();
 }
 
 const isReviewLineInDiff = (diffLines: DiffLine[], path: string, lineNumber: number): boolean => {

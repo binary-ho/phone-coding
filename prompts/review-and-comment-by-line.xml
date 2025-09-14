@@ -46,7 +46,7 @@
                     {
                         "filename": "string",
                         "line_number": "number",
-                        "comment": "string (maximum 2000 characters in korean. comment field is markdown format, and github code suggestion format if you need)",
+                        "comment": "string (maximum 2000 characters in korean github markdown format (newline is `<br/>`)",
                         "importance": "string (one of 'CRITICAL', 'HIGH_PRIORITY', 'MEDIUM_PRIORITY', 'LOW_PRIORITY')",
                     },
                     {
