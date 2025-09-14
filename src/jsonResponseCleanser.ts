@@ -81,27 +81,21 @@ const extractCompleteJson = (text: string): string => {
 };
 
 export const escapeJsonStringContent = (jsonString: string): string => {
-    // JSON 문자열 내부의 comment 필드에서 문제가 되는 패턴들을 수정
-    let cleaned = jsonString;
-    
-    // 1. comment 필드 값을 추출하여 개별적으로 처리
-    cleaned = cleaned.replace(
-        /"comment":\s*"([^"]+?)"/g,
-        (match, commentContent) => {
-            // 개행 문자를 \\n으로 이스케이프
-            let escapedContent = commentContent.replace(/\n/g, '\\n');
-            
-            // 백슬래시를 이중 백슬래시로 이스케이프 (기존 이스케이프된 것은 제외)
-            escapedContent = escapedContent.replace(/\\(?![\\"])/g, '\\\\');
-            
-            // 잘못된 이스케이프 시퀀스 수정 (\g 등)
-            escapedContent = escapedContent.replace(/\\g/g, '\\\\g');
-            
-            return `"comment": "${escapedContent}"`;
-        }
-    );
-    
-    return cleaned;
+    const commentRegex = /"comment":\s*"(.*?)"(?=\s*[,}])/gs;
+
+    return jsonString.replace(commentRegex, (match, commentContent) => {
+        // 캡처된 comment 내용(commentContent) 내부의 특수 문자만 이스케이프 처리합니다.
+        // 1. 백슬래시를 이중 백슬래시로 변경
+        // 2. 큰따옴표를 이스케이프 처리된 큰따옴표로 변경
+        // 3. 개행 문자를 \\n으로 변경
+        const escapedContent = commentContent
+            .replace(/\\/g, '\\\\')
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, '\\n');
+
+        // 원래 형태로 재조립
+        return `"comment": "${escapedContent}"`;
+    });
 };
 
 export const unescapeCommentContent = (comment: string): string => {

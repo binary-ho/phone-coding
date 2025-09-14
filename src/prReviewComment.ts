@@ -22,7 +22,9 @@ export const parsePullRequestReviewLineComments = (text: string): PullRequestRev
         // JSON 파싱 후 각 comment의 내용에서 escape 문자들을 원래 형태로 되돌림
         return comments.map(comment => ({
             ...comment,
-            comment: unescapeCommentContent(comment.comment)
+            // TODO: test
+            // comment: unescapeCommentContent(comment.comment)
+            comment: comment.comment,
         }));
     } catch (error) {
         console.error('Failed to parse AI response as JSON:', error);
