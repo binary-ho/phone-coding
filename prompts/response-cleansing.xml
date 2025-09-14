@@ -6,7 +6,10 @@
     </system_message>
 
     <task>
-        Clean the provided AI response and ensure it follows the exact JSON schema format.
+        1. Clean the input text according to the cleaning rules.
+        2. Preserve all technical content as per the content preservation guidelines.
+        3. Improve formatting for readability and GitHub markdown compatibility.
+        4. Validate the cleaned JSON against the provided schema.
     </task>
 
     <requirements>
@@ -24,7 +27,7 @@
         </content_preservation>
         
         <formatting_improvements>
-            - Add proper line breaks (by add `<br/>` tag) between paragraphs for better readability
+            - Add proper line breaks `<br/>` tag. between paragraphs for better readability
             - Use proper structure and format for github markdown compatibility
         </formatting_improvements>
         
