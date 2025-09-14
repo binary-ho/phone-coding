@@ -7,7 +7,6 @@ import { postOrUpdateComment } from './comment';
 import {DiffLines, parseDiffLines} from './diff-parser';
 import {
   convertToGithubLineComments,
-  createLineComments,
   ImportanceLevel,
   isNoSummaryReviewContent,
   GithubLineComments
@@ -91,9 +90,14 @@ const reviewPullRequestAndComment = async (pullRequestContext: PullRequestContex
     return;
   }
 
-  await createLineComments(
-      octokit, pullRequestContext.repo, pullRequestContext.pr.number, lineComments
-  );
+  const { owner: ownerName, repo: repositoryName } = pullRequestContext.repo;
+  await octokit.rest.pulls.createReview({
+    owner: ownerName,
+    repo: repositoryName,
+    pull_number: pullRequestContext.pr.number,
+    event: 'COMMENT',
+    comments: lineComments,
+  });
 }
 
 const validateModeEnvironment = (mode: string) => {

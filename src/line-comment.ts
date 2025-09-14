@@ -70,20 +70,6 @@ export interface ReviewData {
   comments: GithubLineComment[];
 }
 
-export const createLineComments = async (
-  octokit: ReturnType<typeof github.getOctokit>,
-  repo: { owner: string; repo: string },
-  pull_number: number,
-  lineComments: GithubLineComments,
-) => {
-  await octokit.rest.pulls.createReview({
-    ...repo,
-    pull_number,
-    event: 'COMMENT',
-    comments: lineComments,
-  });
-}
-
 export const findExistingReview = async (
   octokit: ReturnType<typeof github.getOctokit>,
   repo: { owner: string; repo: string },
