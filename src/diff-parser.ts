@@ -7,53 +7,76 @@ export interface DiffLine {
 
 export type DiffLines = DiffLine[];
 
-export const parseDiffLines = (diff: string): DiffLines => {
-  const lines = diff.split('\n');
-  const result: DiffLines = [];
+export const parseDiffLines = (diffString: string): DiffLines => {
+  const lines = diffString.split('\n');
+  const diffLines: DiffLine[] = [];
   let currentPath = '';
-  let oldLineNumber = 0;
   let newLineNumber = 0;
+  let oldLineNumber = 0;
 
   for (const line of lines) {
-    // 파일 경로 파싱
-    if (line.startsWith('diff --git')) {
-      const match = line.match(/diff --git a\/(.*) b\/(.*)/);
-      if (match) {
-        currentPath = match[2];
+    // --- a/file.ts (이전 파일 정보)
+    // +++ b/file.ts (새 파일 정보)
+    if (line.startsWith('--- a/') || line.startsWith('+++ b/')) {
+      // 파일 경로가 시작되는 +++ 라인에서 경로를 추출합니다.
+      if (line.startsWith('+++ b/')) {
+        currentPath = line.substring(6);
       }
+      continue;
     }
-    
-    // 라인 번호 파싱
+
+    // @@ -oldLine,oldCount +newLine,newCount @@ (변경점 시작 위치 정보)
     if (line.startsWith('@@')) {
-      const match = line.match(/@@ -(\d+),?\d* \+(\d+),?\d* @@/);
-      if (match) {
-        oldLineNumber = parseInt(match[1]);
-        newLineNumber = parseInt(match[2]);
+      // hunk 헤더에서 새로운 파일의 시작 줄 번호를 추출합니다.
+      const match = line.match(/\+([0-9]+)/);
+      if (match && match[1]) {
+        newLineNumber = parseInt(match[1], 10);
+        oldLineNumber = parseInt(line.match(/-([0-9]+)/)?.[1] || '0', 10);
       }
+      continue;
     }
-    
-    // 변경 내용 파싱 - GitHub API diff 기준
-    if (line.startsWith('+') && !line.startsWith('+++')) {
-      result.push({
-        path: currentPath,
-        lineNumber: newLineNumber, // GitHub API가 제공하는 새 파일 라인 번호
-        content: line.substring(1),
-        type: 'added'
-      });
-      newLineNumber++;
-    } else if (line.startsWith('-') && !line.startsWith('---')) {
-      oldLineNumber++;
-    } else if (line.startsWith(' ')) {
-      result.push({
-        path: currentPath,
-        lineNumber: newLineNumber, // GitHub API 기준 새 파일 라인 번호
-        content: line.substring(1),
-        type: 'context'
-      });
-      oldLineNumber++;
-      newLineNumber++;
+
+    if (!currentPath) {
+      continue; // 파일 경로가 아직 없으면 건너뜁니다.
+    }
+
+    const type = line[0];
+    const content = line.substring(1);
+
+    switch (type) {
+      case '+':
+        diffLines.push({
+          path: currentPath,
+          lineNumber: newLineNumber,
+          content: content,
+          type: 'added',
+        });
+        newLineNumber++;
+        break;
+      case '-':
+        diffLines.push({
+          path: currentPath,
+          lineNumber: oldLineNumber, // 제거된 라인은 이전 파일 기준
+          content: content,
+          type: 'removed',
+        });
+        oldLineNumber++;
+        break;
+      case ' ': // context 라인
+        diffLines.push({
+          path: currentPath,
+          lineNumber: newLineNumber,
+          content: content,
+          type: 'context',
+        });
+        newLineNumber++;
+        oldLineNumber++;
+        break;
+      default:
+        // diff의 다른 라인들은 무시 (예: \ No newline at end of file)
+        break;
     }
   }
 
-  return result;
+  return diffLines;
 };
