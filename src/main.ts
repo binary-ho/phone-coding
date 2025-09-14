@@ -2,13 +2,18 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { getPullRequestContext, getPullRequestDiff } from './context';
 import { buildSummarizePrompt, buildPullRequestLineCommentsPrompt } from './prompt';
-import { callGeminiApi } from './gemini';
+import { callGeminiApi, cleanJsonAiResponse } from './gemini';
 import { postOrUpdateComment } from './comment';
-import { parseDiffLines } from './diff-parser';
-import { parseLineCommentReviewForLineComments } from './ai-response-parser';
-import {createLineComments, isNoSummaryReviewContent, LineComments} from './line-comment';
+import {DiffLines, parseDiffLines} from './diff-parser';
+import {
+  convertToGithubLineComments,
+  ImportanceLevel,
+  isNoSummaryReviewContent,
+  GithubLineComments
+} from './line-comment';
 import {GitHub} from "@actions/github/lib/utils";
 import {PullRequestContext} from "./pull-request-context";
+import {parsePullRequestReviewLineComments, PullRequestReviewLineComments} from "./prReviewComment";
 
 type Octokit = InstanceType<typeof GitHub>;
 
@@ -23,15 +28,17 @@ async function run(): Promise<void> {
     const octokit: Octokit = github.getOctokit(githubToken);
     const pullRequestContext: PullRequestContext = await getPullRequestContext(octokit);
 
-    const diff = await getPullRequestDiff(pullRequestContext.pr.base_sha, pullRequestContext.pr.head_sha);
+    // Use GitHub API pullRequestDiff instead of local git pullRequestDiff for accurate line number mapping
+    core.info('[DEBUG] Fetching pullRequestDiff from GitHub API...');
+    const pullRequestDiff = await getPullRequestDiff(octokit, pullRequestContext.repo, pullRequestContext.pr.number);
 
     // 1. 요약
-    await summaryPullRequestAndComment(pullRequestContext, diff, octokit, geminiApiKey);
+    await summaryPullRequestAndComment(pullRequestContext, pullRequestDiff, octokit, geminiApiKey);
 
     if (mode !== 'summarize') {
       // 2. PR Review + Line Comment
       core.info('[DEBUG] Starting PR review and line comment process...');
-      await reviewPullRequestAndComment(pullRequestContext, diff, octokit, geminiApiKey);
+      await reviewPullRequestAndComment(pullRequestContext, pullRequestDiff, octokit, geminiApiKey);
     }
   } catch (error) {
     if (error instanceof Error) {
@@ -60,16 +67,28 @@ const reviewPullRequestAndComment = async (pullRequestContext: PullRequestContex
       pullRequestContext.pr.title, pullRequestContext.pr.body, diff
   );
   core.info(`[DEBUG] PR Line Review Prompt: ${lineCommentsPrompt}`);
+  core.info(`================================================`);
 
   const lineCommentReviewResponse = await callGeminiApi(geminiApiKey, lineCommentsPrompt);
   core.info(`[DEBUG] PR Line Review AI Response: ${lineCommentReviewResponse}`);
 
+  // cleansing
+  const cleanedLineCommentReview = await cleanJsonAiResponse(geminiApiKey, lineCommentReviewResponse);
+  core.info(`[DEBUG] Cleansed Line Comment Review AI Response: ${cleanedLineCommentReview}`);
+
+  // filtering
+  const prReviewLineComments = parsePullRequestReviewLineComments(cleanedLineCommentReview);
+  const filteredPrReviewLineComments = filterLowImportanceComments(prReviewLineComments);
+  core.info(`[DEBUG] Filtered line comments count (removed LOW_PRIORITY): ${filteredPrReviewLineComments.length}`);
+
+  // diff 필터링 - 수정된 parseDiffLines 함수로 다시 활성화
   const diffLines = parseDiffLines(diff);
   core.info(`[DEBUG] Parsed diff lines count: ${diffLines.length}`);
 
-  const lineComments: LineComments = parseLineCommentReviewForLineComments(
-      lineCommentReviewResponse, diffLines
-  );
+  const filteredPrReviewLineCommentsInDiff = filterReviewInDifference(filteredPrReviewLineComments, diffLines);
+  core.info(`[DEBUG] Filtered line comments count (in diff): ${filteredPrReviewLineCommentsInDiff.length}`);
+
+  const lineComments: GithubLineComments = convertToGithubLineComments(filteredPrReviewLineCommentsInDiff);
   core.info(`[DEBUG] Parsed line comments count: ${lineComments.length}`);
 
   if (lineComments.length === 0) {
@@ -77,9 +96,14 @@ const reviewPullRequestAndComment = async (pullRequestContext: PullRequestContex
     return;
   }
 
-  await createLineComments(
-      octokit, pullRequestContext.repo, pullRequestContext.pr.number, lineComments
-  );
+  const { owner: ownerName, repo: repositoryName } = pullRequestContext.repo;
+  await octokit.rest.pulls.createReview({
+    owner: ownerName,
+    repo: repositoryName,
+    pull_number: pullRequestContext.pr.number,
+    event: 'COMMENT',
+    comments: lineComments,
+  });
 }
 
 const validateModeEnvironment = (mode: string) => {
@@ -88,5 +112,18 @@ const validateModeEnvironment = (mode: string) => {
     throw new Error(`Invalid mode: ${mode}. Must be 'review' or 'summarize'.`);
   }
 }
+
+const filterLowImportanceComments = (lineComments: PullRequestReviewLineComments): PullRequestReviewLineComments =>
+  lineComments.filter(comment => comment.importance !== ImportanceLevel.LOW_PRIORITY);
+
+const isReviewLineInDiff = (diffLines: DiffLines, path: string, lineNumber: number): boolean => {
+  const find = diffLines.find(diffLine =>
+      diffLine.path === path && diffLine.lineNumber === lineNumber
+  );
+  return find !== undefined;
+}
+
+const filterReviewInDifference = (lineComments: PullRequestReviewLineComments, diffLines: DiffLines): PullRequestReviewLineComments =>
+    lineComments.filter(comment => isReviewLineInDiff(diffLines, comment.filename, comment.line_number));
 
 run();

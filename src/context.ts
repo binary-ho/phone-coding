@@ -1,5 +1,4 @@
 import * as github from '@actions/github';
-import * as exec from '@actions/exec';
 import {PullRequestContext} from "./pull-request-context";
 
 export const getPullRequestContext = async (
@@ -31,18 +30,16 @@ export const getPullRequestContext = async (
   } as PullRequestContext;
 };
 
-export const getPullRequestDiff = async (baseSha: string, headSha: string): Promise<string> => {
-  let diff = '';
-  const options = {
-    listeners: {
-      stdout: (data: Buffer) => {
-        diff += data.toString();
-      },
-    },
-  };
-
-  // fetch-depth: 0 is required for git diff to work correctly.
-  await exec.exec(`git diff --no-color ${baseSha}..${headSha}`, [], options);
-
-  return diff;
+export const getPullRequestDiff = async (
+  octokit: ReturnType<typeof github.getOctokit>,
+  repo: { owner: string; repo: string },
+  pullNumber: number
+): Promise<string> => {
+  const { data } = await octokit.rest.pulls.get({
+    ...repo,
+    pull_number: pullNumber,
+    mediaType: { format: 'diff' },
+  });
+  
+  return data as unknown as string;
 };

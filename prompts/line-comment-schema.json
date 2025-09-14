@@ -1,0 +1,34 @@
+{
+  "type": "object",
+  "properties": {
+    "line_comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "description": "The file path relative to repository root"
+          },
+          "line_number": {
+            "type": "number",
+            "description": "The line number in the file (1-based)"
+          },
+          "comment": {
+            "type": "string",
+            "description": "[most important property] The review comment text in Korean with code suggestions if you need (max 2000 characters)"
+          },
+          "importance": {
+            "type": "string",
+            "enum": ["CRITICAL", "HIGH_PRIORITY", "MEDIUM_PRIORITY", "LOW_PRIORITY"],
+            "description": "The importance level of this comment"
+          }
+        },
+        "required": ["filename", "line_number", "comment", "importance"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["line_comments"],
+  "additionalProperties": false
+}

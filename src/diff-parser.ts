@@ -5,49 +5,73 @@ export interface DiffLine {
   type: 'added' | 'removed' | 'context';
 }
 
-export const parseDiffLines = (diff: string): DiffLine[] => {
-  const lines = diff.split('\n');
-  const result: DiffLine[] = [];
+export type DiffLines = DiffLine[];
+
+export const parseDiffLines = (diffString: string): DiffLines => {
+  const lines = diffString.split('\n');
+  const diffLines: DiffLine[] = [];
   let currentPath = '';
-  let lineNumber = 0;
+  let newLineNumber = 0;
+  let oldLineNumber = 0;
 
   for (const line of lines) {
-    // 파일 경로 파싱
-    if (line.startsWith('diff --git')) {
-      const match = line.match(/diff --git a\/(.*) b\/(.*)/);
-      if (match) {
-        currentPath = match[2];
+    if (line.startsWith('--- a/') || line.startsWith('+++ b/')) {
+      if (line.startsWith('+++ b/')) {
+        currentPath = line.substring(6);
       }
+      continue;
     }
-    
-    // 라인 번호 파싱
+
     if (line.startsWith('@@')) {
-      const match = line.match(/@@ -\d+,?\d* \+(\d+),?\d* @@/);
-      if (match) {
-        lineNumber = parseInt(match[1]);
+      const match = line.match(/\+([0-9]+)/);
+      if (match?.[1]) {
+        newLineNumber = parseInt(match[1], 10);
       }
+      const oldMatch = line.match(/-([0-9]+)/);
+      if (oldMatch?.[1]) {
+        oldLineNumber = parseInt(oldMatch[1], 10);
+      }
+      continue;
     }
-    
-    // 변경 내용 파싱
-    if (line.startsWith('+') && !line.startsWith('+++')) {
-      result.push({
-        path: currentPath,
-        lineNumber: lineNumber,
-        content: line.substring(1),
-        type: 'added'
-      });
-      lineNumber++;
-    } else if (line.startsWith('-') && !line.startsWith('---')) {
-      result.push({
-        path: currentPath,
-        lineNumber: lineNumber,
-        content: line.substring(1),
-        type: 'removed'
-      });
-    } else if (!line.startsWith('@@') && !line.startsWith('diff')) {
-      lineNumber++;
+
+    if (!currentPath) {
+      continue;
+    }
+
+    const type = line[0];
+    const content = line.substring(1);
+
+    switch (type) {
+      case '+':
+        diffLines.push({
+          path: currentPath,
+          lineNumber: newLineNumber,
+          content: content,
+          type: 'added',
+        });
+        newLineNumber++;
+        break;
+
+      case ' ': // context 라인
+        diffLines.push({
+          path: currentPath,
+          lineNumber: newLineNumber,
+          content: content,
+          type: 'context',
+        });
+        newLineNumber++;
+        oldLineNumber++;
+        break;
+
+      case '-':
+        // oldLineNumber 카운트는 유지해야 다음 context 라인 번호 정확
+        oldLineNumber++;
+        break;
+
+      default:
+        break;
     }
   }
 
-  return result;
+  return diffLines;
 };

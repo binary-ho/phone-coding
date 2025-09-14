@@ -1,6 +1,5 @@
 import * as lineComment from './line-comment';
 import * as github from '@actions/github';
-import {LineComments} from "./line-comment";
 
 // Mock the @actions/github module
 jest.mock('@actions/github');
@@ -35,109 +34,7 @@ describe('line-comment', () => {
     } as any);
   });
 
-  describe('createLineComments', () => {
-    it('should create a review with line comments successfully', async () => {
-      // Arrange
-      const lineComments: LineComments = [
-          {
-            path: 'src/example.ts',
-            line: 10,
-            side: 'RIGHT',
-            body: 'This line needs improvement'
-          },
-          {
-            path: 'src/utils.ts',
-            line: 25,
-            side: 'RIGHT',
-            body: 'Consider refactoring this function'
-          }
-      ];
-
-      const mockResponse = {
-        data: {
-          id: 456,
-          body: 'Overall review summary',
-          state: 'COMMENTED'
-        }
-      };
-
-      mockOctokit.rest.pulls.createReview.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await lineComment.createLineComments(
-        mockOctokit as any,
-        repo,
-        pull_number,
-        lineComments
-      );
-
-      // Assert
-      expect(mockOctokit.rest.pulls.createReview).toHaveBeenCalledWith({
-        ...repo,
-        pull_number,
-        event: 'COMMENT',
-        comments: lineComments,
-      });
-      expect(result).toBe(mockResponse);
-    });
-
-    it('should create a review with empty comments array', async () => {
-      // Arrange
-      const lineComments: LineComments = [];
-
-      const mockResponse = {
-        data: {
-          id: 789,
-          body: 'General feedback only',
-          state: 'COMMENTED'
-        }
-      };
-
-      mockOctokit.rest.pulls.createReview.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await lineComment.createLineComments(
-        mockOctokit as any,
-        repo,
-        pull_number,
-        lineComments
-      );
-
-      // Assert
-      expect(mockOctokit.rest.pulls.createReview).toHaveBeenCalledWith({
-        ...repo,
-        pull_number,
-        event: 'COMMENT',
-        comments: [],
-      });
-      expect(result).toBe(mockResponse);
-    });
-
-    it('should handle API errors gracefully', async () => {
-      // Arrange
-      const lineComments: LineComments = [{
-          path: 'src/error.ts',
-          line: 1,
-          side: 'RIGHT',
-          body: 'This will cause an error'
-      }];
-
-      const apiError = new Error('GitHub API Error');
-      mockOctokit.rest.pulls.createReview.mockRejectedValue(apiError);
-
-      // Act & Assert
-      await expect(
-        lineComment.createLineComments(mockOctokit as any, repo, pull_number, lineComments)
-      ).rejects.toThrow('GitHub API Error');
-
-      expect(mockOctokit.rest.pulls.createReview).toHaveBeenCalledWith({
-        ...repo,
-        pull_number,
-        event: 'COMMENT',
-        comments: lineComments,
-      });
-    });
-  });
+  // createLineComments 함수는 main.ts로 이동되어 더 이상 export되지 않습니다.
 
   describe('findExistingReview', () => {
     it('should find and return an existing review from the bot', async () => {
@@ -378,7 +275,7 @@ describe('line-comment', () => {
   describe('LineComment interface', () => {
     it('should have correct structure for LineComment', () => {
       // Arrange
-      const lineCommentExample: lineComment.LineComment = {
+      const lineCommentExample: lineComment.GithubLineComment = {
         path: 'src/test.ts',
         line: 42,
         side: 'RIGHT',
@@ -394,7 +291,7 @@ describe('line-comment', () => {
 
     it('should accept LEFT side for LineComment', () => {
       // Arrange
-      const lineCommentExample: lineComment.LineComment = {
+      const lineCommentExample: lineComment.GithubLineComment = {
         path: 'src/test.ts',
         line: 42,
         side: 'LEFT',
