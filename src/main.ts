@@ -2,13 +2,19 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { getPullRequestContext, getPullRequestDiff } from './context';
 import { buildSummarizePrompt, buildPullRequestLineCommentsPrompt } from './prompt';
-import { callGeminiApi } from './gemini';
+import { callGeminiApi, cleanJsonAiResponse } from './gemini';
 import { postOrUpdateComment } from './comment';
-import { parseDiffLines } from './diff-parser';
-import { parseLineCommentReviewForLineComments } from './ai-response-parser';
-import {createLineComments, isNoSummaryReviewContent, LineComments} from './line-comment';
+import {DiffLines, parseDiffLines} from './diff-parser';
+import {
+  convertToGithubLineComments,
+  createLineComments,
+  ImportanceLevel,
+  isNoSummaryReviewContent,
+  GithubLineComments
+} from './line-comment';
 import {GitHub} from "@actions/github/lib/utils";
 import {PullRequestContext} from "./pull-request-context";
+import {parsePullRequestReviewLineComments, PullRequestReviewLineComments} from "./prReviewComment";
 
 type Octokit = InstanceType<typeof GitHub>;
 
@@ -60,16 +66,24 @@ const reviewPullRequestAndComment = async (pullRequestContext: PullRequestContex
       pullRequestContext.pr.title, pullRequestContext.pr.body, diff
   );
   core.info(`[DEBUG] PR Line Review Prompt: ${lineCommentsPrompt}`);
+  core.info(`================================================`);
 
   const lineCommentReviewResponse = await callGeminiApi(geminiApiKey, lineCommentsPrompt);
   core.info(`[DEBUG] PR Line Review AI Response: ${lineCommentReviewResponse}`);
 
+  // cleansing
+  const cleanedLineCommentReview = await cleanJsonAiResponse(geminiApiKey, lineCommentReviewResponse);
+  core.info(`[DEBUG] Cleansed Line Comment Review AI Response: ${cleanedLineCommentReview}`);
+
+  // filtering
+  const prReviewLineComments = parsePullRequestReviewLineComments(cleanedLineCommentReview);
+  const filteredPrReviewLineComments = filterLowImportanceComments(prReviewLineComments);
   const diffLines = parseDiffLines(diff);
   core.info(`[DEBUG] Parsed diff lines count: ${diffLines.length}`);
+  const filteredPrReviewLineCommentsInDiff = filterReviewInDifference(filteredPrReviewLineComments, diffLines);
 
-  const lineComments: LineComments = parseLineCommentReviewForLineComments(
-      lineCommentReviewResponse, diffLines
-  );
+  // convert to line comments
+  const lineComments: GithubLineComments = convertToGithubLineComments(filteredPrReviewLineCommentsInDiff);
   core.info(`[DEBUG] Parsed line comments count: ${lineComments.length}`);
 
   if (lineComments.length === 0) {
@@ -88,5 +102,18 @@ const validateModeEnvironment = (mode: string) => {
     throw new Error(`Invalid mode: ${mode}. Must be 'review' or 'summarize'.`);
   }
 }
+
+const filterLowImportanceComments = (lineComments: PullRequestReviewLineComments): PullRequestReviewLineComments =>
+  lineComments.filter(comment => comment.importance !== ImportanceLevel.LOW_PRIORITY);
+
+const isReviewLineInDiff = (diffLines: DiffLines, path: string, lineNumber: number): boolean => {
+  const find = diffLines.find(diffLine =>
+      diffLine.path === path && diffLine.lineNumber === lineNumber
+  );
+  return find !== undefined;
+}
+
+const filterReviewInDifference = (lineComments: PullRequestReviewLineComments, diffLines: DiffLines): PullRequestReviewLineComments =>
+    lineComments.filter(comment => isReviewLineInDiff(diffLines, comment.filename, comment.line_number));
 
 run();

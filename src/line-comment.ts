@@ -1,6 +1,5 @@
 import * as github from '@actions/github';
-
-export type LineComments = LineComment[];
+import {PullRequestReviewLineComments} from "./prReviewComment";
 
 export enum ImportanceLevel {
   CRITICAL = 'CRITICAL',
@@ -15,7 +14,7 @@ interface ImportanceMeta {
   description: string;
 }
 
-export const IMPORTANCE_META: Record<ImportanceLevel, ImportanceMeta> = {
+export const IMPORTANCE: Record<ImportanceLevel, ImportanceMeta> = {
   [ImportanceLevel.CRITICAL]: {
     emoji: '🔴',
     label: 'CRITICAL',
@@ -38,59 +37,52 @@ export const IMPORTANCE_META: Record<ImportanceLevel, ImportanceMeta> = {
   }
 };
 
-export interface LineComment {
+export type GithubLineComments = GithubLineComment[];
+
+export interface GithubLineComment {
   path: string;
   line: number;
   side: 'LEFT' | 'RIGHT';
   body: string;
-  importance?: ImportanceLevel;
 }
 
-export const formatCommentWithImportance = (comment: LineComment): string => {
-  if (!comment.importance) {
-    return comment.body;
+export const convertToGithubLineComments = (pullRequestReviewLineComments: PullRequestReviewLineComments): GithubLineComments =>
+  pullRequestReviewLineComments.map(comment => {
+    return {
+      path: comment.filename,
+      line: comment.line_number,
+      side: 'RIGHT',
+      body: addImportanceInComment(comment.comment, comment.importance),
+    } as GithubLineComment;
+  });
+
+const addImportanceInComment = (commentBody: string, importanceLevel?: ImportanceLevel): string => {
+  if (importanceLevel) {
+    return commentBody;
   }
-  
-  const meta = IMPORTANCE_META[comment.importance];
-  return `${meta.emoji} ${meta.label}\n\n${comment.body}`;
-};
 
-interface GitHubLineComment {
-  path: string;
-  line: number;
-  side: 'LEFT' | 'RIGHT';
-  body: string;
-}
-
-export const convertToGitHubFormat = (comments: LineComments): GitHubLineComment[] => {
-  return comments.map(comment => ({
-    path: comment.path,
-    line: comment.line,
-    side: comment.side,
-    body: formatCommentWithImportance(comment)
-  }));
+  const meta = IMPORTANCE[importanceLevel];
+  return `${meta.emoji} ${meta.label}\n\n${commentBody}`;
 };
 
 export interface ReviewData {
   body: string;
-  comments: LineComment[];
+  comments: GithubLineComment[];
 }
 
 export const createLineComments = async (
   octokit: ReturnType<typeof github.getOctokit>,
   repo: { owner: string; repo: string },
   pull_number: number,
-  lineComments: LineComments,
+  lineComments: GithubLineComments,
 ) => {
-  const gitHubComments = convertToGitHubFormat(lineComments);
-
-  return await octokit.rest.pulls.createReview({
+  await octokit.rest.pulls.createReview({
     ...repo,
     pull_number,
     event: 'COMMENT',
-    comments: gitHubComments,
+    comments: lineComments,
   });
-};
+}
 
 export const findExistingReview = async (
   octokit: ReturnType<typeof github.getOctokit>,

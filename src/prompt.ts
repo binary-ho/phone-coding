@@ -4,11 +4,21 @@ import * as path from 'path';
 // prompt 파일명
 const PULL_REQUEST_SUMMARIZE_PROMPT = 'pull-request-summarize.xml';
 const LINE_COMMENT_PROMPT = 'review-and-comment-by-line.xml';
+const LINE_COMMENT_JSON_SCHEMA = 'line-comment-schema.json';
+const RESPONSE_CLEANSING_PROMPT = 'response-cleansing.xml';
 
 const loadPromptTemplate = (templateName: string): string => {
   const templatePath = path.join(__dirname, '..', 'prompts', templateName);
   return fs.readFileSync(templatePath, 'utf-8');
 };
+
+const loadJsonSchema = (schemaName: string): string => {
+  const schemaPath = path.join(__dirname, '..', 'prompts', schemaName);
+  return fs.readFileSync(schemaPath, 'utf-8');
+};
+
+const replaceJsonSchema = (template: string, jsonSchema: string): string =>
+    template.replace(/<json_schema\/>/g, jsonSchema);
 
 const replaceTemplateVariables = (template: string, prTitle: string, prDescription: string, diff: string): string => {
   return template
@@ -111,7 +121,16 @@ export const buildPullRequestLineCommentsPrompt = (
   prDescription: string,
   diff: string,
 ): string => {
-  const template = loadPromptTemplate(LINE_COMMENT_PROMPT);
+  const templateBase = loadPromptTemplate(LINE_COMMENT_PROMPT);
+  const jsonSchema = loadJsonSchema(LINE_COMMENT_JSON_SCHEMA);
+  const template = replaceJsonSchema(templateBase, jsonSchema);
   const diffList = parseDiffByFile(diff, template);
   return replaceTemplateVariablesWithDiffList(template, prTitle, prDescription, diffList);
+};
+
+export const buildResponseCleansingPrompt = (rawResponse: string): string => {
+  const templateBase = loadPromptTemplate(RESPONSE_CLEANSING_PROMPT);
+  const jsonSchema = loadJsonSchema(LINE_COMMENT_JSON_SCHEMA);
+  const template = replaceJsonSchema(templateBase, jsonSchema);
+  return template.replace(/\{\{rawResponse\}\}/g, rawResponse);
 };

@@ -39,25 +39,6 @@
     <output_instructions>
         You MUST respond with ONLY a single, valid JSON object that conforms to the schema below. Do not include any other text around the JSON object.
 
-        <json_schema>
-            {
-                // Write Response Here
-                "line_comments": [
-                    {
-                        "filename": "string",
-                        "line_number": "number",
-                        "comment": "string (maximum 2000 characters in korean github markdown format (newline is `<br/>`)",
-                        "importance": "string (one of 'CRITICAL', 'HIGH_PRIORITY', 'MEDIUM_PRIORITY', 'LOW_PRIORITY')",
-                    },
-                    {
-                        "filename": "string",
-                        "line_number": "number",
-                        "comment": "string (maximum 2000 characters in korean. comment field is markdown format, and github code suggestion format if you need)",
-                        "importance": "string (one of 'CRITICAL', 'HIGH_PRIORITY', 'MEDIUM_PRIORITY', 'LOW_PRIORITY')",
-                    },
-                    // Add more...
-                ]
-            }
-        </json_schema>
+        <json_schema/>
     </output_instructions>
 </prompt>

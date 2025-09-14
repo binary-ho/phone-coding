@@ -1,6 +1,6 @@
 import * as lineComment from './line-comment';
 import * as github from '@actions/github';
-import {LineComments} from "./line-comment";
+import {GithubLineComments} from "./line-comment";
 
 // Mock the @actions/github module
 jest.mock('@actions/github');
@@ -38,7 +38,7 @@ describe('line-comment', () => {
   describe('createLineComments', () => {
     it('should create a review with line comments successfully', async () => {
       // Arrange
-      const lineComments: LineComments = [
+      const lineComments: GithubLineComments = [
           {
             path: 'src/example.ts',
             line: 10,
@@ -83,7 +83,7 @@ describe('line-comment', () => {
 
     it('should create a review with empty comments array', async () => {
       // Arrange
-      const lineComments: LineComments = [];
+      const lineComments: GithubLineComments = [];
 
       const mockResponse = {
         data: {
@@ -115,7 +115,7 @@ describe('line-comment', () => {
 
     it('should handle API errors gracefully', async () => {
       // Arrange
-      const lineComments: LineComments = [{
+      const lineComments: GithubLineComments = [{
           path: 'src/error.ts',
           line: 1,
           side: 'RIGHT',
@@ -378,7 +378,7 @@ describe('line-comment', () => {
   describe('LineComment interface', () => {
     it('should have correct structure for LineComment', () => {
       // Arrange
-      const lineCommentExample: lineComment.LineComment = {
+      const lineCommentExample: lineComment.GithubLineComment = {
         path: 'src/test.ts',
         line: 42,
         side: 'RIGHT',
@@ -394,7 +394,7 @@ describe('line-comment', () => {
 
     it('should accept LEFT side for LineComment', () => {
       // Arrange
-      const lineCommentExample: lineComment.LineComment = {
+      const lineCommentExample: lineComment.GithubLineComment = {
         path: 'src/test.ts',
         line: 42,
         side: 'LEFT',
