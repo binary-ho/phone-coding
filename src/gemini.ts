@@ -1,6 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import {buildResponseCleansingPrompt} from "./prompt";
-import {cleanJsonResponseByStatic, escapeJsonStringContent} from "./jsonResponseCleanser";
+import {cleanJsonResponseByStatic, escapeJsonStringContent, removeCodeBlocks} from "./jsonResponseCleanser";
 
 export const callGeminiApi = async (apiKey: string, prompt: string): Promise<string> => {
   try {
@@ -32,7 +32,8 @@ const validateContentNotEmpty = (responseText: string) => {
 
 export const cleanJsonAiResponse = async (apiKey: string, rawResponse: string): Promise<string> => {
   const cleanedByAI = await cleanByAiRequest(apiKey, rawResponse);
-  return escapeJsonStringContent(cleanedByAI);
+  const removedCodeBlocks = removeCodeBlocks(cleanedByAI);
+  return escapeJsonStringContent(removedCodeBlocks);
 };
 
 const cleanByAiRequest = async (apiKey: string, rawResponse: string): Promise<string> => {
