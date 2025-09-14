@@ -79,14 +79,15 @@ const reviewPullRequestAndComment = async (pullRequestContext: PullRequestContex
   const filteredPrReviewLineComments = filterLowImportanceComments(prReviewLineComments);
   core.info(`[DEBUG] Filtered line comments count (removed LOW_PRIORITY): ${filteredPrReviewLineComments.length}`);
 
-  const diffLines = parseDiffLines(diff);
-  core.info(`[DEBUG] Parsed diff lines count: ${diffLines.length}`);
+  // binary-ho: filter by diff가 제대로 동작하지 않음
+  // const diffLines = parseDiffLines(diff);
+  // core.info(`[DEBUG] Parsed diff lines count: ${diffLines.length}`);
 
-  const filteredPrReviewLineCommentsInDiff = filterReviewInDifference(filteredPrReviewLineComments, diffLines);
-  core.info(`[DEBUG] Filtered line comments count (in diff): ${filteredPrReviewLineCommentsInDiff.length}`);
+  // const filteredPrReviewLineCommentsInDiff = filterReviewInDifference(filteredPrReviewLineComments, diffLines);
+  // core.info(`[DEBUG] Filtered line comments count (in diff): ${filteredPrReviewLineCommentsInDiff.length}`);
 
   // convert to line comments
-  const lineComments: GithubLineComments = convertToGithubLineComments(filteredPrReviewLineCommentsInDiff);
+  const lineComments: GithubLineComments = convertToGithubLineComments(filteredPrReviewLineComments);
   core.info(`[DEBUG] Parsed line comments count: ${lineComments.length}`);
 
   if (lineComments.length === 0) {
