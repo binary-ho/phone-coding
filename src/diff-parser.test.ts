@@ -18,15 +18,19 @@ index 1234567..abcdefg 100644
       // Act
       const result = parseDiffLines(diff);
 
-      // Assert
-      expect(result).toHaveLength(2);
-      expect(result[0]).toEqual({
+      // Assert - now includes context lines
+      expect(result).toHaveLength(5);
+      expect(result.filter(line => line.type === 'added')).toHaveLength(2);
+      
+      // Check added lines specifically
+      const addedLines = result.filter(line => line.type === 'added');
+      expect(addedLines[0]).toEqual({
         path: 'src/example.ts',
         lineNumber: 2,
         content: '  console.log(\'Hello World\');',
         type: 'added'
       });
-      expect(result[1]).toEqual({
+      expect(addedLines[1]).toEqual({
         path: 'src/example.ts',
         lineNumber: 4,
         content: '  // Added comment',
@@ -51,19 +55,17 @@ index 1234567..abcdefg 100644
       // Act
       const result = parseDiffLines(diff);
 
-      // Assert
-      expect(result).toHaveLength(2);
+      // Assert - removed lines are not included, only context lines
+      expect(result).toHaveLength(4);
+      expect(result.filter(line => line.type === 'context')).toHaveLength(4);
+      expect(result.filter(line => line.type === 'removed')).toHaveLength(0);
+      
+      // Check context lines
       expect(result[0]).toEqual({
         path: 'src/utils.ts',
-        lineNumber: 2,
-        content: '  const temp = \'unused\';',
-        type: 'removed'
-      });
-      expect(result[1]).toEqual({
-        path: 'src/utils.ts',
-        lineNumber: 3,
-        content: '  console.log(\'debug\');',
-        type: 'removed'
+        lineNumber: 1,
+        content: 'function calculate() {',
+        type: 'context'
       });
     });
 
@@ -83,15 +85,15 @@ index 1234567..abcdefg 100644
       // Act
       const result = parseDiffLines(diff);
 
-      // Assert
-      expect(result).toHaveLength(2);
-      expect(result[0]).toEqual({
-        path: 'src/mixed.ts',
-        lineNumber: 2,
-        content: '  const oldVar = \'old\';',
-        type: 'removed'
-      });
-      expect(result[1]).toEqual({
+      // Assert - includes context lines and added lines, removed lines excluded
+      expect(result).toHaveLength(4);
+      expect(result.filter(line => line.type === 'added')).toHaveLength(1);
+      expect(result.filter(line => line.type === 'removed')).toHaveLength(0);
+      expect(result.filter(line => line.type === 'context')).toHaveLength(3);
+      
+      // Check added line
+      const addedLine = result.find(line => line.type === 'added');
+      expect(addedLine).toEqual({
         path: 'src/mixed.ts',
         lineNumber: 2,
         content: '  const newVar = \'new\';',
@@ -122,14 +124,18 @@ index 7890123..defghij 100644
       const result = parseDiffLines(diff);
 
       // Assert
-      expect(result).toHaveLength(2);
-      expect(result[0]).toEqual({
+      expect(result).toHaveLength(6);
+      expect(result.filter(line => line.type === 'added')).toHaveLength(2);
+      expect(result.filter(line => line.type === 'context')).toHaveLength(4);
+      
+      const addedLines = result.filter(line => line.type === 'added');
+      expect(addedLines[0]).toEqual({
         path: 'src/file1.ts',
         lineNumber: 2,
         content: 'const b = 2;',
         type: 'added'
       });
-      expect(result[1]).toEqual({
+      expect(addedLines[1]).toEqual({
         path: 'src/file2.ts',
         lineNumber: 2,
         content: 'const y = 20;',
@@ -156,14 +162,18 @@ index 1234567..abcdefg 100644
       const result = parseDiffLines(diff);
 
       // Assert
-      expect(result).toHaveLength(2);
-      expect(result[0]).toEqual({
+      expect(result).toHaveLength(7);
+      expect(result.filter(line => line.type === 'added')).toHaveLength(2);
+      expect(result.filter(line => line.type === 'context')).toHaveLength(5);
+      
+      const addedLines = result.filter(line => line.type === 'added');
+      expect(addedLines[0]).toEqual({
         path: 'src/complex.ts',
         lineNumber: 12,
         content: '  const step2a = \'intermediate\';',
         type: 'added'
       });
-      expect(result[1]).toEqual({
+      expect(addedLines[1]).toEqual({
         path: 'src/complex.ts',
         lineNumber: 14,
         content: '  const step3a = \'cleanup\';',
@@ -250,14 +260,18 @@ index 1234567..abcdefg 100644
       const result = parseDiffLines(diff);
 
       // Assert
-      expect(result).toHaveLength(2);
-      expect(result[0]).toEqual({
+      expect(result).toHaveLength(9);
+      expect(result.filter(line => line.type === 'added')).toHaveLength(2);
+      expect(result.filter(line => line.type === 'context')).toHaveLength(7);
+      
+      const addedLines = result.filter(line => line.type === 'added');
+      expect(addedLines[0]).toEqual({
         path: 'src/tracking.ts',
         lineNumber: 8,
         content: '  const line7a = \'added\';',
         type: 'added'
       });
-      expect(result[1]).toEqual({
+      expect(addedLines[1]).toEqual({
         path: 'src/tracking.ts',
         lineNumber: 11,
         content: '  const line9a = \'added\';',
@@ -284,8 +298,12 @@ index 1234567..abcdefg 100644
       const result = parseDiffLines(diff);
 
       // Assert
-      expect(result).toHaveLength(1);
-      expect(result[0]).toEqual({
+      expect(result).toHaveLength(4);
+      expect(result.filter(line => line.type === 'added')).toHaveLength(1);
+      expect(result.filter(line => line.type === 'context')).toHaveLength(3);
+      
+      const addedLine = result.find(line => line.type === 'added');
+      expect(addedLine).toEqual({
         path: 'src/new-name.ts',
         lineNumber: 2,
         content: '  console.log(\'renamed function\');',

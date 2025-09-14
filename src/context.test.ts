@@ -23,7 +23,6 @@ jest.mock('@actions/exec', () => ({
 }));
 
 // Type-safe mock functions
-const mockedExec = exec.exec as jest.Mock;
 const mockedGithub = github as jest.Mocked<typeof github>;
 
 describe('context', () => {
@@ -86,36 +85,49 @@ describe('context', () => {
     });
   });
 
-  describe('getPrDiff', () => {
-    it('should call "git diff" with the correct SHAs', async () => {
+  describe('getPullRequestDiff', () => {
+    it('should call GitHub API with correct parameters', async () => {
       // Arrange
-      const baseSha = 'base123';
-      const headSha = 'head456';
+      const mockOctokit = {
+        rest: {
+          pulls: {
+            get: jest.fn().mockResolvedValue({ data: 'mock diff content' })
+          }
+        }
+      };
+      const repo = { owner: 'test-owner', repo: 'test-repo' };
+      const pullNumber = 123;
 
       // Act
-      await getPullRequestDiff(baseSha, headSha);
+      await getPullRequestDiff(mockOctokit as any, repo, pullNumber);
 
       // Assert
-      expect(mockedExec).toHaveBeenCalledWith(
-        `git diff --no-color ${baseSha}..${headSha}`,
-        [],
-        expect.any(Object)
-      );
+      expect(mockOctokit.rest.pulls.get).toHaveBeenCalledWith({
+        owner: 'test-owner',
+        repo: 'test-repo',
+        pull_number: 123,
+        mediaType: { format: 'diff' }
+      });
     });
 
-    it('should capture and return the stdout of the git diff command', async () => {
+    it('should return GitHub API diff content', async () => {
       // Arrange
-      const diffOutput = 'diff --git a/file.txt b/file.txt\\n--- a/file.txt\\n+++ b/file.txt\\n@@ -1 +1 @@\\n-hello\\n+world\\n';
-      mockedExec.mockImplementation((command, args, options) => {
-        options.listeners.stdout(Buffer.from(diffOutput));
-        return Promise.resolve(0);
-      });
+      const diffContent = 'diff --git a/file.txt b/file.txt\\n--- a/file.txt\\n+++ b/file.txt\\n@@ -1 +1 @@\\n-hello\\n+world\\n';
+      const mockOctokit = {
+        rest: {
+          pulls: {
+            get: jest.fn().mockResolvedValue({ data: diffContent })
+          }
+        }
+      };
+      const repo = { owner: 'test-owner', repo: 'test-repo' };
+      const pullNumber = 123;
 
       // Act
-      const diff = await getPullRequestDiff('base-sha', 'head-sha');
+      const diff = await getPullRequestDiff(mockOctokit as any, repo, pullNumber);
 
       // Assert
-      expect(diff).toBe(diffOutput);
+      expect(diff).toBe(diffContent);
     });
   });
 });
