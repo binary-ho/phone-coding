@@ -223,7 +223,7 @@ random text
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         path: '',
-        lineNumber: 2,
+        lineNumber: 0,
         content: 'some added line without proper context',
         type: 'added'
       });

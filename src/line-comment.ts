@@ -57,7 +57,7 @@ export const convertToGithubLineComments = (pullRequestReviewLineComments: PullR
   });
 
 const addImportanceInComment = (commentBody: string, importanceLevel?: ImportanceLevel): string => {
-  if (importanceLevel) {
+  if (!importanceLevel) {
     return commentBody;
   }
 
