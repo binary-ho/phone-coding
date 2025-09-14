@@ -9,9 +9,14 @@ export interface PullRequestReviewLineComment {
     importance: ImportanceLevel;
 }
 
+interface JsonAIResponse {
+    line_comments: PullRequestReviewLineComment[];
+}
+
 export const parsePullRequestReviewLineComments = (text: string): PullRequestReviewLineComments => {
     try {
-        return JSON.parse(text) as PullRequestReviewLineComments;
+        const parsed = JSON.parse(text) as JsonAIResponse;
+        return parsed.line_comments || [];
     } catch (error) {
         console.error('Failed to parse AI response as JSON:', error);
         return [] as PullRequestReviewLineComments;
