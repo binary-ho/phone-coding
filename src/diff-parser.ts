@@ -32,25 +32,24 @@ export const parseDiffLines = (diff: string): DiffLines => {
       }
     }
     
-    // 변경 내용 파싱
+    // 변경 내용 파싱 - GitHub API diff 기준
     if (line.startsWith('+') && !line.startsWith('+++')) {
       result.push({
         path: currentPath,
-        lineNumber: newLineNumber,
+        lineNumber: newLineNumber, // GitHub API가 제공하는 새 파일 라인 번호
         content: line.substring(1),
         type: 'added'
       });
       newLineNumber++;
     } else if (line.startsWith('-') && !line.startsWith('---')) {
-      result.push({
-        path: currentPath,
-        lineNumber: newLineNumber, // AI는 새 파일 기준으로 코멘트하므로 newLineNumber 사용
-        content: line.substring(1),
-        type: 'removed'
-      });
       oldLineNumber++;
     } else if (line.startsWith(' ')) {
-      // 컨텍스트 라인 - 라인 번호만 추적하고 결과에는 포함하지 않음
+      result.push({
+        path: currentPath,
+        lineNumber: newLineNumber, // GitHub API 기준 새 파일 라인 번호
+        content: line.substring(1),
+        type: 'context'
+      });
       oldLineNumber++;
       newLineNumber++;
     }

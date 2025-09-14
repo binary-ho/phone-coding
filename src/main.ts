@@ -28,15 +28,17 @@ async function run(): Promise<void> {
     const octokit: Octokit = github.getOctokit(githubToken);
     const pullRequestContext: PullRequestContext = await getPullRequestContext(octokit);
 
-    const diff = await getPullRequestDiff(pullRequestContext.pr.base_sha, pullRequestContext.pr.head_sha);
+    // Use GitHub API pullRequestDiff instead of local git pullRequestDiff for accurate line number mapping
+    core.info('[DEBUG] Fetching pullRequestDiff from GitHub API...');
+    const pullRequestDiff = await getPullRequestDiff(octokit, pullRequestContext.repo, pullRequestContext.pr.number);
 
     // 1. 요약
-    await summaryPullRequestAndComment(pullRequestContext, diff, octokit, geminiApiKey);
+    await summaryPullRequestAndComment(pullRequestContext, pullRequestDiff, octokit, geminiApiKey);
 
     if (mode !== 'summarize') {
       // 2. PR Review + Line Comment
       core.info('[DEBUG] Starting PR review and line comment process...');
-      await reviewPullRequestAndComment(pullRequestContext, diff, octokit, geminiApiKey);
+      await reviewPullRequestAndComment(pullRequestContext, pullRequestDiff, octokit, geminiApiKey);
     }
   } catch (error) {
     if (error instanceof Error) {
@@ -86,7 +88,6 @@ const reviewPullRequestAndComment = async (pullRequestContext: PullRequestContex
   const filteredPrReviewLineCommentsInDiff = filterReviewInDifference(filteredPrReviewLineComments, diffLines);
   core.info(`[DEBUG] Filtered line comments count (in diff): ${filteredPrReviewLineCommentsInDiff.length}`);
 
-  // convert to line comments
   const lineComments: GithubLineComments = convertToGithubLineComments(filteredPrReviewLineCommentsInDiff);
   core.info(`[DEBUG] Parsed line comments count: ${lineComments.length}`);
 
