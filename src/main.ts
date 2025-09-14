@@ -77,9 +77,13 @@ const reviewPullRequestAndComment = async (pullRequestContext: PullRequestContex
   // filtering
   const prReviewLineComments = parsePullRequestReviewLineComments(cleanedLineCommentReview);
   const filteredPrReviewLineComments = filterLowImportanceComments(prReviewLineComments);
+  core.info(`[DEBUG] Filtered line comments count (removed LOW_PRIORITY): ${filteredPrReviewLineComments.length}`);
+
   const diffLines = parseDiffLines(diff);
   core.info(`[DEBUG] Parsed diff lines count: ${diffLines.length}`);
+
   const filteredPrReviewLineCommentsInDiff = filterReviewInDifference(filteredPrReviewLineComments, diffLines);
+  core.info(`[DEBUG] Filtered line comments count (in diff): ${filteredPrReviewLineCommentsInDiff.length}`);
 
   // convert to line comments
   const lineComments: GithubLineComments = convertToGithubLineComments(filteredPrReviewLineCommentsInDiff);
