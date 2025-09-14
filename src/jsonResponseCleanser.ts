@@ -24,7 +24,7 @@ const removePriorityTag = (comment: string): string => {
         .trim();
 }
 
-const removeCodeBlocks = (text: string): string => {
+export const removeCodeBlocks = (text: string): string => {
     const removedCodeBlock = text.replace(/```[\w]*\n?([\s\S]*?)```/g, '$1');
 
     // 백틱 없이 언어만 있는 경우 제거 (json\n[...] 형태)

@@ -1,6 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import {buildResponseCleansingPrompt} from "./prompt";
-import {cleanJsonResponseByStatic} from "./jsonResponseCleanser";
+import {cleanJsonResponseByStatic, removeCodeBlocks} from "./jsonResponseCleanser";
 
 export const callGeminiApi = async (apiKey: string, prompt: string): Promise<string> => {
   try {
@@ -31,11 +31,17 @@ const validateContentNotEmpty = (responseText: string) => {
 }
 
 export const cleanJsonAiResponse = async (apiKey: string, rawResponse: string): Promise<string> => {
+  const cleanedByAI = await cleanByAiRequest(apiKey, rawResponse);
+  return removeCodeBlocks(cleanedByAI);
+};
+
+const cleanByAiRequest = async (apiKey: string, rawResponse: string): Promise<string> => {
   try {
     const cleaningPrompt = buildResponseCleansingPrompt(rawResponse);
     return await callGeminiApi(apiKey, cleaningPrompt);
   } catch (error) {
+    // fallback to static cleansing
     console.error('Error in AI cleansing process. 정적 cleansing 적용:', error);
     return cleanJsonResponseByStatic(rawResponse);
   }
-};
+}
